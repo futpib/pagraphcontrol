@@ -79,7 +79,7 @@ const Preferences = withStateHandlers(
 ] : [
 	r(Button, {
 		onClick: toggle,
-	}, 'Props'),
+	}, 'Preferences'),
 ]));
 
 module.exports = connect(

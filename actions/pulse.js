@@ -14,5 +14,7 @@ module.exports = createActionCreators({
 
 		MOVE_SINK_INPUT: (sinkInputIndex, destSinkIndex) => ({ sinkInputIndex, destSinkIndex }),
 		MOVE_SOURCE_OUTPUT: (sourceOutputIndex, destSourceIndex) => ({ sourceOutputIndex, destSourceIndex }),
+
+		KILL_CLIENT_BY_INDEX: clientIndex => ({ clientIndex }),
 	},
 });

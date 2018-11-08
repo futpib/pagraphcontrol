@@ -4,7 +4,7 @@ const {
 	values,
 	flatten,
 	memoizeWith,
-	pick,
+	path,
 	filter,
 } = require('ramda');
 
@@ -31,7 +31,7 @@ const {
 
 Edge.calculateOffset = function (nodeSize, source, target) {
 	const arrowVector = math.matrix([ target.x - source.x, target.y - source.y ]);
-	const offsetLength = Math.max(0, Math.min((0.85 * size), (math.norm(arrowVector) / 2) - 40));
+	const offsetLength = Math.max(0, Math.min((0.75 * size), (math.norm(arrowVector) / 2) - 40));
 	const offsetVector = math.dotMultiply(arrowVector, (offsetLength / math.norm(arrowVector)) || 0);
 
 	return {
@@ -94,12 +94,7 @@ const graphConfig = {
 				viewBox: '0 0 50 50',
 				id: 'sinkInput',
 				key: '0',
-			}, r.circle({
-				cx: '25',
-				cy: '25',
-				r: '8',
-				fill: 'currentColor',
-			})),
+			}),
 		},
 		sourceOutput: {
 			shapeId: '#sourceOutput',
@@ -107,12 +102,7 @@ const graphConfig = {
 				viewBox: '0 0 50 50',
 				id: 'sourceOutput',
 				key: '0',
-			}, r.circle({
-				cx: '25',
-				cy: '25',
-				r: '8',
-				fill: 'currentColor',
-			})),
+			}),
 		},
 	},
 };
@@ -173,15 +163,27 @@ const renderDefs = () => r(React.Fragment, [
 	})),
 
 	r('marker', {
-		id: 'start-arrow',
+		id: 'my-source-arrow',
 		viewBox: '0 -8 16 16',
-		refX: '8',
+		refX: '16',
 		markerWidth: '16',
 		markerHeight: '16',
 		orient: 'auto',
 	}, r.path({
 		className: 'arrow',
 		d: 'M 16,-8 L 0,0 L 16,8',
+	})),
+
+	r('marker', {
+		id: 'my-sink-arrow',
+		viewBox: '0 -8 16 16',
+		refX: '16',
+		markerWidth: '16',
+		markerHeight: '16',
+		orient: 'auto',
+	}, r.path({
+		className: 'arrow',
+		d: 'M 0,-8 L 16,0 L 0,8',
 	})),
 ]);
 
@@ -220,6 +222,7 @@ const SourceText = ({ dgo, pai, props }) => r.div([
 
 const ClientText = ({ dgo, pai, props }) => r.div([
 	r.div({
+		title: path('properties.application.process.binary'.split('.'), pai),
 	}, pai.name),
 	r(DebugText, { dgo, pai, props }),
 ]);
@@ -258,6 +261,7 @@ const afterRenderEdge = (id, element, edge, edgeContainer) => {
 	if (edge.type) {
 		edgeContainer.classList.add(edge.type);
 	}
+	//const edgeOverlay = edgeContainer.querySelector('.edge-overlay-path');
 };
 
 class Graph extends React.Component {
@@ -299,7 +303,10 @@ class Graph extends React.Component {
 	onUpdateNode() {
 	}
 
-	onDeleteNode() {
+	onDeleteNode(selected) {
+		if (selected.type === 'client') {
+			this.props.killClientByIndex(selected.index);
+		}
 	}
 
 	onSelectEdge() {
@@ -316,7 +323,8 @@ class Graph extends React.Component {
 		}
 	}
 
-	onDeleteEdge() {}
+	onDeleteEdge() {
+	}
 
 	render() {
 		const edges = map(paiToEdge, flatten(map(values, [
@@ -392,7 +400,7 @@ class Graph extends React.Component {
 
 			showGraphControls: false,
 
-			edgeArrowSize: 16,
+			edgeArrowSize: 128,
 
 			backgroundFillId: '#background-pattern',
 
@@ -411,8 +419,5 @@ module.exports = connect(
 
 		preferences: state.preferences,
 	}),
-	dispatch => bindActionCreators(pick([
-		'moveSinkInput',
-		'moveSourceOutput',
-	], pulseActions), dispatch),
+	dispatch => bindActionCreators(pulseActions, dispatch),
 )(Graph);

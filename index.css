@@ -51,7 +51,15 @@ button:active {
 .view-wrapper .sourceOutput .edge {
 	/* marker-end: none; */
 	/* marker-start: url(#start-arrow); */
-	marker-end: url(#start-arrow);
+	marker-end: url(#my-source-arrow);
+}
+
+.view-wrapper .sinkInput .edge {
+	marker-end: url(#my-sink-arrow);
+}
+
+#edge-custom-container .edge {
+	marker-end: none;
 }
 
 .view-wrapper .graph .edge {
@@ -89,4 +97,8 @@ button:active {
 
 .checkbox {
 	user-select: none;
+}
+
+.view-wrapper .graph .edge-mouse-handler {
+	stroke-width: 30px;
 }

@@ -8,7 +8,7 @@ const { default: thunkMiddleware } = require('redux-thunk');
 const { default: createPromiseMiddleware } = require('redux-promise-middleware');
 
 const { persistStore, persistReducer } = require('redux-persist');
-const { default: storage } = require('redux-persist/lib/storage');
+const createElectronStorage = require('redux-persist-electron-storage');
 
 const { reducer, initialState } = require('../reducers');
 
@@ -16,8 +16,8 @@ const pulseMiddleware = require('./pulse-middleware');
 
 const persistConfig = {
 	key: 'redux-persist',
-	whitelist: [ 'localStorage' ],
-	storage,
+	whitelist: [ 'preferences' ],
+	storage: createElectronStorage(),
 };
 
 const dev = process.env.NODE_ENV !== 'production';

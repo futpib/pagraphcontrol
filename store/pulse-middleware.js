@@ -77,21 +77,23 @@ module.exports = store => {
 
 	pa.connect();
 
+	const rethrow = error => {
+		if (error) {
+			throw error;
+		}
+	};
+
 	const handlePulseActions = handleActions({
 		[pulseActions.moveSinkInput]: (state, { payload: { sinkInputIndex, destSinkIndex } }) => {
-			pa.moveSinkInput(sinkInputIndex, destSinkIndex, error => {
-				if (error) {
-					throw error;
-				}
-			});
+			pa.moveSinkInput(sinkInputIndex, destSinkIndex, rethrow);
 			return state;
 		},
 		[pulseActions.moveSourceOutput]: (state, { payload: { sourceOutputIndex, destSourceIndex } }) => {
-			pa.moveSourceOutput(sourceOutputIndex, destSourceIndex, error => {
-				if (error) {
-					throw error;
-				}
-			});
+			pa.moveSourceOutput(sourceOutputIndex, destSourceIndex, rethrow);
+			return state;
+		},
+		[pulseActions.killClientByIndex]: (state, { payload: { clientIndex } }) => {
+			pa.killClientByIndex(clientIndex, rethrow);
 			return state;
 		},
 	}, null);
