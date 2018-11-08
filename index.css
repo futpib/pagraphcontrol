@@ -5,11 +5,17 @@ body {
 	font: -webkit-control;
 }
 
+div {
+	box-sizing: border-box;
+}
+
 button {
 	background: var(--themeBgColor);
 	color: var(--themeTextColor);
 	border: 1px solid var(--borders);
 	user-select: none;
+
+	padding: 8px;
 }
 
 button:hover {
@@ -25,6 +31,12 @@ button:active {
 	background: var(--themeSelectedBgColor);
 	position: relative;
 	top: 1px;
+}
+
+.checkbox {
+	user-select: none;
+
+	padding: 8px;
 }
 
 .view-wrapper .graph {
@@ -93,10 +105,6 @@ button:active {
 
 .preferences > div {
 	margin-bottom: 1rem;
-}
-
-.checkbox {
-	user-select: none;
 }
 
 .view-wrapper .graph .edge-mouse-handler {

@@ -12,6 +12,10 @@ const initialState = {
 	hideDisconnectedModules: true,
 	hideDisconnectedSources: false,
 	hideDisconnectedSinks: false,
+
+	hideMonitors: false,
+	hidePulseaudioApps: true,
+
 	showDebugInfo: false,
 };
 

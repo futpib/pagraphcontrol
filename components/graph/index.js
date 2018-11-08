@@ -6,6 +6,8 @@ const {
 	memoizeWith,
 	path,
 	filter,
+	forEach,
+	merge,
 } = require('ramda');
 
 const React = require('react');
@@ -21,7 +23,10 @@ const { Edge } = require('react-digraph');
 
 const d = require('../../utils/d');
 
-const { pulse: pulseActions } = require('../../actions');
+const {
+	pulse: pulseActions,
+	icons: iconsActions,
+} = require('../../actions');
 
 const { getPaiByTypeAndIndex } = require('../../selectors');
 
@@ -81,6 +86,12 @@ const paiToEdge = memoize(pai => ({
 	index: pai.index,
 	type: pai.type,
 }));
+
+const getPaiIcon = memoize(pai => {
+	return null ||
+		path([ 'properties', 'application', 'icon_name' ], pai) ||
+		path([ 'properties', 'device', 'icon_name' ], pai);
+});
 
 const graphConfig = {
 	nodeTypes: {},
@@ -197,44 +208,44 @@ const renderNode = (nodeRef, data, key, selected, hovered) => r({
 	hovered,
 });
 
-const DebugText = ({ dgo, pai, props }) => r.div({
+const DebugText = ({ dgo, pai, state }) => r.div({
 	style: {
 		fontSize: '50%',
 	},
-}, props.preferences.showDebugInfo ? [
+}, state.preferences.showDebugInfo ? [
 	JSON.stringify(dgo, null, 2),
 	JSON.stringify(pai, null, 2),
 ] : []);
 
-const SinkText = ({ dgo, pai, props }) => r.div([
+const SinkText = ({ dgo, pai, state }) => r.div([
 	r.div({
 		title: pai.name,
 	}, pai.description),
-	r(DebugText, { dgo, pai, props }),
+	r(DebugText, { dgo, pai, state }),
 ]);
 
-const SourceText = ({ dgo, pai, props }) => r.div([
+const SourceText = ({ dgo, pai, state }) => r.div([
 	r.div({
 		title: pai.name,
 	}, pai.description),
-	r(DebugText, { dgo, pai, props }),
+	r(DebugText, { dgo, pai, state }),
 ]);
 
-const ClientText = ({ dgo, pai, props }) => r.div([
+const ClientText = ({ dgo, pai, state }) => r.div([
 	r.div({
 		title: path('properties.application.process.binary'.split('.'), pai),
 	}, pai.name),
-	r(DebugText, { dgo, pai, props }),
+	r(DebugText, { dgo, pai, state }),
 ]);
 
-const ModuleText = ({ dgo, pai, props }) => r.div([
+const ModuleText = ({ dgo, pai, state }) => r.div([
 	r.div({
 		title: pai.properties.module.description,
 	}, pai.name),
-	r(DebugText, { dgo, pai, props }),
+	r(DebugText, { dgo, pai, state }),
 ]);
 
-const renderNodeText = props => dgo => r('foreignObject', {
+const renderNodeText = state => dgo => r('foreignObject', {
 	x: -s2,
 	y: -s2,
 }, r.div({
@@ -245,6 +256,11 @@ const renderNodeText = props => dgo => r('foreignObject', {
 		padding: 2,
 
 		whiteSpace: 'pre',
+
+		backgroundRepeat: 'no-repeat',
+		backgroundSize: '60%',
+		backgroundPosition: 'center',
+		backgroundImage: (icon => icon && `url(${icon})`)(state.icons[getPaiIcon(dgoToPai.get(dgo))]),
 	},
 }, r({
 	sink: SinkText,
@@ -254,14 +270,13 @@ const renderNodeText = props => dgo => r('foreignObject', {
 }[dgo.type] || ModuleText, {
 	dgo,
 	pai: dgoToPai.get(dgo),
-	props,
+	state,
 })));
 
 const afterRenderEdge = (id, element, edge, edgeContainer) => {
 	if (edge.type) {
 		edgeContainer.classList.add(edge.type);
 	}
-	//const edgeOverlay = edgeContainer.querySelector('.edge-overlay-path');
 };
 
 class Graph extends React.Component {
@@ -271,6 +286,8 @@ class Graph extends React.Component {
 		this.state = {
 			selected: null,
 		};
+
+		this._requestedIcons = new Set();
 
 		Object.assign(this, {
 			onSelectNode: this.onSelectNode.bind(this),
@@ -289,8 +306,27 @@ class Graph extends React.Component {
 			(nextProps.objects === this.props.objects) &&
 				(nextProps.infos === this.props.infos) &&
 				(nextProps.preferences === this.props.preferences) &&
+				(nextProps.icons === this.props.icons) &&
 				(nextState.selected === this.state.selected)
 		);
+	}
+
+	componentDidUpdate() {
+		forEach(pai => {
+			const icon = getPaiIcon(pai);
+			if (!icon) {
+				return;
+			}
+			if (!this._requestedIcons.has(icon) && !this.props.icons[icon]) {
+				this.props.getIconPath(icon, 128);
+			}
+			this._requestedIcons.add(icon);
+		}, flatten(map(values, [
+			this.props.infos.sinks,
+			this.props.infos.sources,
+			this.props.infos.clients,
+			this.props.infos.modules,
+		])));
 	}
 
 	onSelectNode(selected) {
@@ -327,16 +363,18 @@ class Graph extends React.Component {
 	}
 
 	render() {
-		const edges = map(paiToEdge, flatten(map(values, [
+		let edges = map(paiToEdge, flatten(map(values, [
 			this.props.infos.sinkInputs,
 			this.props.infos.sourceOutputs,
 		])));
 
-		const connectedNodeKeys = {};
+		const connectedNodeKeys = new Set();
 		edges.forEach(edge => {
-			connectedNodeKeys[edge.source] = true;
-			connectedNodeKeys[edge.target] = true;
+			connectedNodeKeys.add(edge.source);
+			connectedNodeKeys.add(edge.target);
 		});
+
+		const filteredNodeKeys = new Set();
 
 		const nodes = filter(node => {
 			if ((this.props.preferences.hideDisconnectedClients && node.type === 'client') ||
@@ -344,8 +382,33 @@ class Graph extends React.Component {
 				(this.props.preferences.hideDisconnectedSources && node.type === 'source') ||
 				(this.props.preferences.hideDisconnectedSinks && node.type === 'sink')
 			) {
-				return connectedNodeKeys[node.id];
+				if (!connectedNodeKeys.has(node.id)) {
+					return false;
+				}
 			}
+
+			const pai = dgoToPai.get(node);
+			if (pai) {
+				if (this.props.preferences.hideMonitors &&
+					pai.properties.device &&
+					pai.properties.device.class === 'monitor'
+				) {
+					return false;
+				}
+
+				if (this.props.preferences.hidePulseaudioApps) {
+					const binary = path([ 'properties', 'application', 'process', 'binary' ], pai) || '';
+					const name = path([ 'properties', 'application', 'name' ], pai) || '';
+					if (binary.startsWith('pavucontrol') ||
+						binary.startsWith('kmix') ||
+						name === 'paclient.js'
+					) {
+						return false;
+					}
+				}
+			}
+
+			filteredNodeKeys.add(node.id);
 			return true;
 		}, map(paoToNode, flatten(map(values, [
 			this.props.objects.sinks,
@@ -353,6 +416,10 @@ class Graph extends React.Component {
 			this.props.objects.clients,
 			this.props.objects.modules,
 		]))));
+
+		edges = filter(edge => {
+			return filteredNodeKeys.has(edge.source) && filteredNodeKeys.has(edge.target);
+		}, edges);
 
 		nodes.forEach(node => {
 			if (node.x !== undefined) {
@@ -417,7 +484,9 @@ module.exports = connect(
 		objects: state.pulse.objects,
 		infos: state.pulse.infos,
 
+		icons: state.icons,
+
 		preferences: state.preferences,
 	}),
-	dispatch => bindActionCreators(pulseActions, dispatch),
+	dispatch => bindActionCreators(merge(pulseActions, iconsActions), dispatch),
 )(Graph);

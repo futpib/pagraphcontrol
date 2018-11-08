@@ -65,6 +65,20 @@ const Preferences = withStateHandlers(
 
 	r.div([
 		r(Checkbox, {
+			checked: props.preferences.hideMonitors,
+			onChange: () => props.actions.toggle('hideMonitors'),
+		}, 'Hide monitors'),
+	]),
+
+	r.div([
+		r(Checkbox, {
+			checked: props.preferences.hidePulseaudioApps,
+			onChange: () => props.actions.toggle('hidePulseaudioApps'),
+		}, 'Hide pulseaudio applications'),
+	]),
+
+	r.div([
+		r(Checkbox, {
 			checked: props.preferences.showDebugInfo,
 			onChange: () => props.actions.toggle('showDebugInfo'),
 		}, 'Show debug info'),
