@@ -1,0 +1,41 @@
+body {
+	margin: 0;
+	background: var(--themeBaseColor);
+	color: var(--themeTextColor);
+	font: -webkit-control;
+}
+
+.view-wrapper .graph {
+	background: var(--themeBaseColor);
+}
+
+.view-wrapper .grid-dot {
+	fill: var(--themeBgColor);
+}
+
+.view-wrapper .node {
+	fill: var(--themeBgColor);
+	stroke: var(--borders);
+}
+
+.view-wrapper .node.hovered {
+	stroke: var(--themeSelectedBgColor);
+}
+.view-wrapper .node.selected {
+	fill: var(--themeSelectedBgColor);
+	color: var(--themeSelectedFgColor);
+}
+
+.view-wrapper .sourceOutput .edge {
+	/* marker-end: none; */
+	/* marker-start: url(#start-arrow); */
+	marker-end: url(#start-arrow);
+}
+
+.view-wrapper .graph .edge {
+	stroke: var(--successColor);
+}
+
+.view-wrapper .graph .arrow {
+	fill: var(--successColor);
+}
