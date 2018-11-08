@@ -5,6 +5,28 @@ body {
 	font: -webkit-control;
 }
 
+button {
+	background: var(--themeBgColor);
+	color: var(--themeTextColor);
+	border: 1px solid var(--borders);
+	user-select: none;
+}
+
+button:hover {
+	border-color: var(--themeSelectedBgColor);
+}
+
+button:focus {
+	outline: none;
+	border-color: var(--themeSelectedBgColor);
+}
+
+button:active {
+	background: var(--themeSelectedBgColor);
+	position: relative;
+	top: 1px;
+}
+
 .view-wrapper .graph {
 	background: var(--themeBaseColor);
 }
@@ -38,4 +60,33 @@ body {
 
 .view-wrapper .graph .arrow {
 	fill: var(--successColor);
+}
+
+.preferences {
+	position: absolute;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	padding: 1rem;
+	overflow: auto;
+}
+
+.preferences:not(.open) {
+	pointer-events: none;
+}
+
+.preferences:not(.open) > * {
+	pointer-events: initial;
+}
+
+.preferences.open {
+	background: var(--themeBgColor);
+}
+
+.preferences > div {
+	margin-bottom: 1rem;
+}
+
+.checkbox {
+	user-select: none;
 }

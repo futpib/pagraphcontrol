@@ -5,6 +5,7 @@ const {
 	flatten,
 	memoizeWith,
 	pick,
+	filter,
 } = require('ramda');
 
 const React = require('react');
@@ -14,16 +15,19 @@ const r = require('r-dom');
 const { connect } = require('react-redux');
 const { bindActionCreators } = require('redux');
 
-const {
-	GraphView,
-	Edge,
-} = require('react-digraph');
-
 const math = require('mathjs');
+
+const { Edge } = require('react-digraph');
+
+const d = require('../../utils/d');
 
 const { pulse: pulseActions } = require('../../actions');
 
 const { getPaiByTypeAndIndex } = require('../../selectors');
+
+const {
+	GraphView,
+} = require('./satellites-graph');
 
 Edge.calculateOffset = function (nodeSize, source, target) {
 	const arrowVector = math.matrix([ target.x - source.x, target.y - source.y ]);
@@ -71,6 +75,7 @@ const paoToNode = memoize(pao => ({
 }));
 
 const paiToEdge = memoize(pai => ({
+	id: key(pai),
 	source: sourceKey(pai),
 	target: targetKey(pai),
 	index: pai.index,
@@ -111,34 +116,6 @@ const graphConfig = {
 		},
 	},
 };
-
-class D {
-	constructor(s = '') {
-		this._s = s;
-	}
-
-	_next(...args) {
-		return new this.constructor([ this._s, ...args ].join(' '));
-	}
-
-	moveTo(x, y) {
-		return this._next('M', x, y);
-	}
-
-	lineTo(x, y) {
-		return this._next('L', x, y);
-	}
-
-	close() {
-		return this._next('z');
-	}
-
-	toString() {
-		return this._s;
-	}
-}
-
-const d = () => new D();
 
 const size = 120;
 const s2 = size / 2;
@@ -213,48 +190,48 @@ const renderNode = (nodeRef, data, key, selected, hovered) => r({
 	source: Source,
 	client: Client,
 	module: Module,
-}[data.type], {
+}[data.type] || Module, {
 	selected,
 	hovered,
 });
 
-const DebugText = ({ dgo, pai, open = false }) => r.div({
+const DebugText = ({ dgo, pai, props }) => r.div({
 	style: {
 		fontSize: '50%',
 	},
-}, [
-	open && JSON.stringify(dgo, null, 2),
-	open && JSON.stringify(pai, null, 2),
-]);
+}, props.preferences.showDebugInfo ? [
+	JSON.stringify(dgo, null, 2),
+	JSON.stringify(pai, null, 2),
+] : []);
 
-const SinkText = ({ dgo, pai }) => r.div([
+const SinkText = ({ dgo, pai, props }) => r.div([
 	r.div({
 		title: pai.name,
 	}, pai.description),
-	r(DebugText, { dgo, pai }),
+	r(DebugText, { dgo, pai, props }),
 ]);
 
-const SourceText = ({ dgo, pai }) => r.div([
+const SourceText = ({ dgo, pai, props }) => r.div([
 	r.div({
 		title: pai.name,
 	}, pai.description),
-	r(DebugText, { dgo, pai }),
+	r(DebugText, { dgo, pai, props }),
 ]);
 
-const ClientText = ({ dgo, pai }) => r.div([
+const ClientText = ({ dgo, pai, props }) => r.div([
 	r.div({
 	}, pai.name),
-	r(DebugText, { dgo, pai }),
+	r(DebugText, { dgo, pai, props }),
 ]);
 
-const ModuleText = ({ dgo, pai }) => r.div([
+const ModuleText = ({ dgo, pai, props }) => r.div([
 	r.div({
 		title: pai.properties.module.description,
 	}, pai.name),
-	r(DebugText, { dgo, pai }),
+	r(DebugText, { dgo, pai, props }),
 ]);
 
-const renderNodeText = dgo => r('foreignObject', {
+const renderNodeText = props => dgo => r('foreignObject', {
 	x: -s2,
 	y: -s2,
 }, r.div({
@@ -274,6 +251,7 @@ const renderNodeText = dgo => r('foreignObject', {
 }[dgo.type] || ModuleText, {
 	dgo,
 	pai: dgoToPai.get(dgo),
+	props,
 })));
 
 const afterRenderEdge = (id, element, edge, edgeContainer) => {
@@ -289,6 +267,26 @@ class Graph extends React.Component {
 		this.state = {
 			selected: null,
 		};
+
+		Object.assign(this, {
+			onSelectNode: this.onSelectNode.bind(this),
+			onCreateNode: this.onCreateNode.bind(this),
+			onUpdateNode: this.onUpdateNode.bind(this),
+			onDeleteNode: this.onDeleteNode.bind(this),
+			onSelectEdge: this.onSelectEdge.bind(this),
+			onCreateEdge: this.onCreateEdge.bind(this),
+			onSwapEdge: this.onSwapEdge.bind(this),
+			onDeleteEdge: this.onDeleteEdge.bind(this),
+		});
+	}
+
+	shouldComponentUpdate(nextProps, nextState) {
+		return !(
+			(nextProps.objects === this.props.objects) &&
+				(nextProps.infos === this.props.infos) &&
+				(nextProps.preferences === this.props.preferences) &&
+				(nextState.selected === this.state.selected)
+		);
 	}
 
 	onSelectNode(selected) {
@@ -296,7 +294,6 @@ class Graph extends React.Component {
 	}
 
 	onCreateNode() {
-		
 	}
 
 	onUpdateNode() {
@@ -322,16 +319,32 @@ class Graph extends React.Component {
 	onDeleteEdge() {}
 
 	render() {
-		const nodes = map(paoToNode, flatten(map(values, [
-			this.props.objects.sinks,
-			this.props.objects.sources,
-			this.props.objects.clients,
-			this.props.objects.modules,
-		])));
 		const edges = map(paiToEdge, flatten(map(values, [
 			this.props.infos.sinkInputs,
 			this.props.infos.sourceOutputs,
 		])));
+
+		const connectedNodeKeys = {};
+		edges.forEach(edge => {
+			connectedNodeKeys[edge.source] = true;
+			connectedNodeKeys[edge.target] = true;
+		});
+
+		const nodes = filter(node => {
+			if ((this.props.preferences.hideDisconnectedClients && node.type === 'client') ||
+				(this.props.preferences.hideDisconnectedModules && node.type === 'module') ||
+				(this.props.preferences.hideDisconnectedSources && node.type === 'source') ||
+				(this.props.preferences.hideDisconnectedSinks && node.type === 'sink')
+			) {
+				return connectedNodeKeys[node.id];
+			}
+			return true;
+		}, map(paoToNode, flatten(map(values, [
+			this.props.objects.sinks,
+			this.props.objects.sources,
+			this.props.objects.clients,
+			this.props.objects.modules,
+		]))));
 
 		nodes.forEach(node => {
 			if (node.x !== undefined) {
@@ -359,6 +372,7 @@ class Graph extends React.Component {
 			style: {},
 		}, r(GraphView, {
 			nodeKey: 'id',
+			edgeKey: 'id',
 
 			nodes,
 			edges,
@@ -367,14 +381,14 @@ class Graph extends React.Component {
 
 			...graphConfig,
 
-			onSelectNode: this.onSelectNode.bind(this),
-			onCreateNode: this.onCreateNode.bind(this),
-			onUpdateNode: this.onUpdateNode.bind(this),
-			onDeleteNode: this.onDeleteNode.bind(this),
-			onSelectEdge: this.onSelectEdge.bind(this),
-			onCreateEdge: this.onCreateEdge.bind(this),
-			onSwapEdge: this.onSwapEdge.bind(this),
-			onDeleteEdge: this.onDeleteEdge.bind(this),
+			onSelectNode: this.onSelectNode,
+			onCreateNode: this.onCreateNode,
+			onUpdateNode: this.onUpdateNode,
+			onDeleteNode: this.onDeleteNode,
+			onSelectEdge: this.onSelectEdge,
+			onCreateEdge: this.onCreateEdge,
+			onSwapEdge: this.onSwapEdge,
+			onDeleteEdge: this.onDeleteEdge,
 
 			showGraphControls: false,
 
@@ -384,14 +398,19 @@ class Graph extends React.Component {
 
 			renderDefs,
 			renderNode,
-			renderNodeText,
+			renderNodeText: renderNodeText(this.props),
 			afterRenderEdge,
 		}));
 	}
 }
 
 module.exports = connect(
-	state => state.pulse,
+	state => ({
+		objects: state.pulse.objects,
+		infos: state.pulse.infos,
+
+		preferences: state.preferences,
+	}),
 	dispatch => bindActionCreators(pick([
 		'moveSinkInput',
 		'moveSourceOutput',
