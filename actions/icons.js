@@ -1,33 +1,47 @@
 
 const { createActions: createActionCreators } = require('redux-actions');
 
-// const { getIconPath } = require('../modules/get-gtk-icon');
-const getIconPath = () => {
-	throw new Error('stub');
-};
+const freedesktopIcons = require('freedesktop-icons');
+
+const { iconThemeNames } = require('../utils/theme');
 
 const fallbacks = new Map(Object.entries({
 	'audio-card-pci': 'audio-card',
 	'audio-card-usb': 'audio-card',
 }));
 
-const getIconPathFallback = async (icon, size) => {
-	try {
-		return await getIconPath(icon, size);
-	} catch (error) {
-		if (error.message === 'No icon found') {
-			if (fallbacks.has(icon)) {
-				return getIconPathFallback(fallbacks.get(icon), size);
-			}
-		}
-		throw error;
+const cache = new Map();
+
+const getIconWithFallback = async name => {
+	if (cache.has(name)) {
+		return cache.get(name);
 	}
+
+	let res = await freedesktopIcons({
+		name,
+		type: 'scalable',
+	}, iconThemeNames);
+
+	if (!res) {
+		res = await freedesktopIcons({
+			name,
+			size: 128,
+		}, iconThemeNames);
+	}
+
+	if (!res && fallbacks.has(name)) {
+		return getIconWithFallback(fallbacks.get(name));
+	}
+
+	cache.set(name, res);
+
+	return res;
 };
 
 module.exports = createActionCreators({
 	ICONS: {
 		GET_ICON_PATH: [
-			(icon, size) => getIconPathFallback(icon, size),
+			icon => getIconWithFallback(icon),
 			icon => icon,
 		],
 	},

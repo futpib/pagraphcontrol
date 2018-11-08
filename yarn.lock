@@ -2646,6 +2646,13 @@ fragment-cache@^0.2.1:
   dependencies:
     map-cache "^0.2.2"
 
+freedesktop-icons@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/freedesktop-icons/-/freedesktop-icons-0.1.0.tgz#33ed79c3695aa1c73e099497dc6dc4c557035f37"
+  integrity sha512-bXJgCzaaXg4WxnsF3GU35q5T46fRb/4gz2X7femz05T5jkCQ+Jlquobj1MZ+mpfCQ+kP62isx1jHU+AWF52Smw==
+  dependencies:
+    xdg-basedir "^3.0.0"
+
 fresh@0.5.2:
   version "0.5.2"
   resolved "https://registry.yarnpkg.com/fresh/-/fresh-0.5.2.tgz#3d8cadd90d976569fa835ab1f8e4b23a105605a7"
@@ -3122,7 +3129,7 @@ inherits@2, inherits@2.0.3, inherits@^2.0.1, inherits@^2.0.3, inherits@~2.0.1, i
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.3.tgz#633c2c83e3da42a502f52466022480f4208261de"
   integrity sha1-Yzwsg+PaQqUC9SRmAiSA9CCCYd4=
 
-ini@^1.3.4, ini@~1.3.0:
+ini@^1.3.4, ini@^1.3.5, ini@~1.3.0:
   version "1.3.5"
   resolved "https://registry.yarnpkg.com/ini/-/ini-1.3.5.tgz#eee25f56db1c9ec6085e0c22778083f596abf927"
   integrity sha512-RZY5huIKCMRWDUqZlEi72f/lmXKMvuszcMBduliQ3nnWbx9X/ZBQO7DijMEYS9EhHBb2qacRUMtC7svLwe0lcw==
