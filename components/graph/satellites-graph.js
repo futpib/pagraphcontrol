@@ -26,6 +26,8 @@ const Satellite = () => r(React.Fragment);
 
 const satelliteSpread = 36;
 
+const satelliteEdgeToOriginalEdge = new WeakMap();
+
 class GraphView extends React.Component {
 	constructor(props) {
 		super(props);
@@ -43,6 +45,8 @@ class GraphView extends React.Component {
 
 			renderNode: this.renderNode.bind(this),
 			renderNodeText: this.renderNodeText.bind(this),
+
+			afterRenderEdge: this.afterRenderEdge.bind(this),
 		});
 	}
 
@@ -108,6 +112,11 @@ class GraphView extends React.Component {
 		return r(React.Fragment);
 	}
 
+	afterRenderEdge(id, element, edge, edgeContainer) {
+		const originalEdge = satelliteEdgeToOriginalEdge.get(edge);
+		this.props.afterRenderEdge(id, element, originalEdge || edge, edgeContainer);
+	}
+
 	render() {
 		const { nodeKey } = this.props;
 		const { edgesByTargetNodeKey, satelliteNodesByTargetNodeKey } = this.state;
@@ -118,14 +127,18 @@ class GraphView extends React.Component {
 			return satelliteNodes.concat(node);
 		}, this.props.nodes));
 
-		const edges = flatten(values(mapObjIndexed((edges, target) => mapIndexed((edge, i) => ({
-			id: edge.id,
-			source: edge.source,
-			target: satelliteNodesByTargetNodeKey[target][i][nodeKey],
-			originalTarget: edge.target,
-			index: edge.index,
-			type: edge.type,
-		}), edges), edgesByTargetNodeKey)));
+		const edges = flatten(values(mapObjIndexed((edges, target) => mapIndexed((edge, i) => {
+			const satelliteEdge = {
+				id: edge.id,
+				source: edge.source,
+				target: satelliteNodesByTargetNodeKey[target][i][nodeKey],
+				originalTarget: edge.target,
+				index: edge.index,
+				type: edge.type,
+			};
+			satelliteEdgeToOriginalEdge.set(satelliteEdge, edge);
+			return satelliteEdge;
+		}, edges), edgesByTargetNodeKey)));
 
 		return r(GraphViewBase, {
 			...this.props,
@@ -140,6 +153,8 @@ class GraphView extends React.Component {
 
 			renderNode: this.renderNode,
 			renderNodeText: this.renderNodeText,
+
+			afterRenderEdge: this.afterRenderEdge,
 		});
 	}
 }

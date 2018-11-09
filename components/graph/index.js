@@ -19,8 +19,6 @@ const { bindActionCreators } = require('redux');
 
 const math = require('mathjs');
 
-const { Edge } = require('react-digraph');
-
 const d = require('../../utils/d');
 
 const {
@@ -34,16 +32,9 @@ const {
 	GraphView,
 } = require('./satellites-graph');
 
-Edge.calculateOffset = function (nodeSize, source, target) {
-	const arrowVector = math.matrix([ target.x - source.x, target.y - source.y ]);
-	const offsetLength = Math.max(0, Math.min((0.75 * size), (math.norm(arrowVector) / 2) - 40));
-	const offsetVector = math.dotMultiply(arrowVector, (offsetLength / math.norm(arrowVector)) || 0);
-
-	return {
-		xOff: offsetVector.get([ 0 ]),
-		yOff: offsetVector.get([ 1 ]),
-	};
-};
+const {
+	Edge,
+} = require('./base');
 
 const weakmapId_ = new WeakMap();
 const weakmapId = o => {
@@ -279,6 +270,31 @@ const afterRenderEdge = (id, element, edge, edgeContainer) => {
 	}
 };
 
+const renderEdge = edgeProps => r(Edge, edgeProps);
+
+const renderEdgeText = state => ({ data, transform }) => r('foreignObject', {
+	transform,
+}, r.div({
+	style: {
+		width: size,
+		height: size,
+
+		padding: 2,
+
+		whiteSpace: 'pre',
+
+		backgroundRepeat: 'no-repeat',
+		backgroundSize: '60%',
+		backgroundPosition: 'center',
+	},
+}, [
+	r(DebugText, {
+		dgo: data,
+		pai: data.type && getPaiByTypeAndIndex(data.type, data.index)({ pulse: state }),
+		state,
+	}),
+]));
+
 class Graph extends React.Component {
 	constructor(props) {
 		super(props);
@@ -442,6 +458,11 @@ class Graph extends React.Component {
 			dgoToPai.set(node, pai);
 		});
 
+		edges.forEach(edge => {
+			const pai = getPaiByTypeAndIndex(edge.type, edge.index)({ pulse: this.props });
+			dgoToPai.set(edge, pai);
+		});
+
 		return r.div({
 			id: 'graph',
 			style: {},
@@ -472,8 +493,13 @@ class Graph extends React.Component {
 			backgroundFillId: '#background-pattern',
 
 			renderDefs,
+
 			renderNode,
 			renderNodeText: renderNodeText(this.props),
+
+			renderEdge,
+			renderEdgeText: renderEdgeText(this.props),
+
 			afterRenderEdge,
 		}));
 	}
