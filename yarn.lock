@@ -79,11 +79,6 @@
   dependencies:
     arrify "^1.0.1"
 
-"@jakejarrett/gtk-theme@^1.1.2":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@jakejarrett/gtk-theme/-/gtk-theme-1.1.2.tgz#f2c291d43476f4f5b42798cb6be276207f6791c9"
-  integrity sha512-oZyD9j81d1zbL+BY8WvI1LKes+bHti3qTHrv3cFjL5pDSulwBHtX6Q1tCdGasKVNiE6L9KOgnjKCSIIElQgLKg==
-
 "@ladjs/time-require@^0.1.4":
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/@ladjs/time-require/-/time-require-0.1.4.tgz#5c615d75fd647ddd5de9cf6922649558856b21a1"
