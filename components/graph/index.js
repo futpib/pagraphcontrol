@@ -358,6 +358,8 @@ class Graph extends React.Component {
 	onDeleteNode(selected) {
 		if (selected.type === 'client') {
 			this.props.killClientByIndex(selected.index);
+		} else if (selected.type === 'module') {
+			this.props.unloadModuleByIndex(selected.index);
 		}
 	}
 

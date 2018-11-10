@@ -1,5 +1,5 @@
 
-const PAClient = require('paclient');
+const PAClient = require('@futpib/paclient');
 
 const { handleActions } = require('redux-actions');
 
@@ -94,6 +94,10 @@ module.exports = store => {
 		},
 		[pulseActions.killClientByIndex]: (state, { payload: { clientIndex } }) => {
 			pa.killClientByIndex(clientIndex, rethrow);
+			return state;
+		},
+		[pulseActions.unloadModuleByIndex]: (state, { payload: { moduleIndex } }) => {
+			pa.unloadModuleByIndex(moduleIndex, rethrow);
 			return state;
 		},
 	}, null);
