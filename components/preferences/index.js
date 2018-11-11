@@ -79,6 +79,13 @@ const Preferences = withStateHandlers(
 
 	r.div([
 		r(Checkbox, {
+			checked: props.preferences.hideVolumeThumbnails,
+			onChange: () => props.actions.toggle('hideVolumeThumbnails'),
+		}, 'Hide volume thumbnails'),
+	]),
+
+	r.div([
+		r(Checkbox, {
 			checked: props.preferences.showDebugInfo,
 			onChange: () => props.actions.toggle('showDebugInfo'),
 		}, 'Show debug info'),

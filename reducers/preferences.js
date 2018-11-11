@@ -16,6 +16,8 @@ const initialState = {
 	hideMonitors: false,
 	hidePulseaudioApps: true,
 
+	hideVolumeThumbnails: false,
+
 	showDebugInfo: false,
 };
 

@@ -71,30 +71,33 @@ button:active {
 	fill: var(--themeSelectedBgColor);
 }
 
-.view-wrapper .sourceOutput .edge {
+.view-wrapper .edge.edge {
+	marker-end: none;
+}
+.view-wrapper .sourceOutput .edge-path {
 	marker-end: url(#my-source-arrow);
 }
-.view-wrapper .sourceOutput .edge.selected {
+.view-wrapper .sourceOutput .selected .edge-path {
 	marker-end: url(#my-source-arrow-selected);
 }
 
-.view-wrapper .sinkInput .edge {
+.view-wrapper .sinkInput .edge-path {
 	marker-end: url(#my-sink-arrow);
 }
-.view-wrapper .sinkInput .edge.selected {
+.view-wrapper .sinkInput .selected .edge-path {
 	marker-end: url(#my-sink-arrow-selected);
 }
 
-#edge-custom-container .edge {
+#edge-custom-container .edge-path {
 	marker-end: none;
 }
 
 .view-wrapper .graph .edge {
-	stroke: var(--successColor);
+	stroke: var(--borders);
 }
 
 .view-wrapper .graph .arrow {
-	fill: var(--successColor);
+	fill: var(--borders);
 }
 
 .preferences {
@@ -124,4 +127,48 @@ button:active {
 
 .view-wrapper .graph .edge-mouse-handler {
 	stroke-width: 30px;
+}
+
+.node {
+	cursor: pointer;
+}
+
+.node-text, .edge-text {
+	pointer-events: none;
+
+	padding: 2;
+
+	white-space: pre;
+
+	background-repeat: no-repeat;
+	background-size: 60%;
+	background-position: center;
+}
+
+.node-name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.volume-thumbnail-ruler-line {
+	stroke-width: 2px;
+	stroke: var(--borders);
+}
+.node.selected .volume-thumbnail-ruler-line {
+	stroke: var(--themeSelectedFgColor)
+}
+.volume-thumbnail-volume-line {
+	stroke-width: 2px;
+	stroke: var(--successColor);
+}
+.node.selected .volume-thumbnail-volume-line {
+	stroke: var(--themeSelectedFgColor)
+}
+
+.volume-thumbnail-muted .volume-thumbnail-volume-line {
+	stroke: var(--borders)
+}
+
+.edge-text {
+	pointer-events: none;
 }

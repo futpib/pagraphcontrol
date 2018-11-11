@@ -27,6 +27,10 @@ const {
 const { getPaiByTypeAndIndex } = require('../../selectors');
 
 const {
+	PA_VOLUME_NORM,
+} = require('../../constants/pulse');
+
+const {
 	GraphView,
 } = require('./satellites-graph');
 
@@ -207,6 +211,51 @@ const renderNode = (nodeRef, data, key, selected, hovered) => r({
 	hovered,
 });
 
+const VolumeThumbnail = ({ pai, state }) => {
+	if (state.preferences.hideVolumeThumbnails) {
+		return r(React.Fragment);
+	}
+
+	const volumes = (pai && pai.channelVolumes) || [];
+	const muted = !pai || pai.muted;
+
+	const step = size / 32;
+	const padding = 2;
+	const width = size - 8;
+	const height = ((1 + volumes.length) * step);
+
+	return r.svg({
+		classSet: {
+			'volume-thumbnail': true,
+			'volume-thumbnail-muted': muted,
+		},
+	}, [
+		r.line({
+			className: 'volume-thumbnail-ruler-line',
+			x1: padding,
+			x2: padding,
+			y1: padding,
+			y2: padding + height,
+		}),
+
+		r.line({
+			className: 'volume-thumbnail-ruler-line',
+			x1: padding + width,
+			x2: padding + width,
+			y1: padding,
+			y2: padding + height,
+		}),
+
+		...volumes.map((v, i) => r.line({
+			className: 'volume-thumbnail-volume-line',
+			x1: padding,
+			x2: padding + ((v / PA_VOLUME_NORM) * width),
+			y1: padding + ((1 + i) * step),
+			y2: padding + ((1 + i) * step),
+		})),
+	]);
+};
+
 const DebugText = ({ dgo, pai, state }) => r.div({
 	style: {
 		fontSize: '50%',
@@ -218,20 +267,25 @@ const DebugText = ({ dgo, pai, state }) => r.div({
 
 const SinkText = ({ dgo, pai, state }) => r.div([
 	r.div({
+		className: 'node-name',
 		title: pai.name,
 	}, pai.description),
+	r(VolumeThumbnail, { pai, state }),
 	r(DebugText, { dgo, pai, state }),
 ]);
 
 const SourceText = ({ dgo, pai, state }) => r.div([
 	r.div({
+		className: 'node-name',
 		title: pai.name,
 	}, pai.description),
+	r(VolumeThumbnail, { pai, state }),
 	r(DebugText, { dgo, pai, state }),
 ]);
 
 const ClientText = ({ dgo, pai, state }) => r.div([
 	r.div({
+		className: 'node-name',
 		title: path('properties.application.process.binary'.split('.'), pai),
 	}, pai.name),
 	r(DebugText, { dgo, pai, state }),
@@ -239,6 +293,7 @@ const ClientText = ({ dgo, pai, state }) => r.div([
 
 const ModuleText = ({ dgo, pai, state }) => r.div([
 	r.div({
+		className: 'node-name',
 		title: pai.properties.module.description,
 	}, pai.name),
 	r(DebugText, { dgo, pai, state }),
@@ -248,17 +303,11 @@ const renderNodeText = state => dgo => r('foreignObject', {
 	x: -s2,
 	y: -s2,
 }, r.div({
+	className: 'node-text',
 	style: {
 		width: size,
 		height: size,
 
-		padding: 2,
-
-		whiteSpace: 'pre',
-
-		backgroundRepeat: 'no-repeat',
-		backgroundSize: '60%',
-		backgroundPosition: 'center',
 		backgroundImage: (icon => icon && `url(${icon})`)(state.icons[getPaiIcon(dgoToPai.get(dgo))]),
 	},
 }, r({
@@ -279,28 +328,22 @@ const renderEdge = props => r(Edge, {
 	...props,
 });
 
-const renderEdgeText = state => ({ data, transform }) => r('foreignObject', {
-	transform,
-}, r.div({
-	style: {
-		width: size,
-		height: size,
+const renderEdgeText = state => ({ data: dgo, transform }) => {
+	const pai = dgo.type && getPaiByTypeAndIndex(dgo.type, dgo.index)({ pulse: state });
 
-		padding: 2,
-
-		whiteSpace: 'pre',
-
-		backgroundRepeat: 'no-repeat',
-		backgroundSize: '60%',
-		backgroundPosition: 'center',
-	},
-}, [
-	r(DebugText, {
-		dgo: data,
-		pai: data.type && getPaiByTypeAndIndex(data.type, data.index)({ pulse: state }),
-		state,
-	}),
-]));
+	return r('foreignObject', {
+		transform,
+	}, r.div({
+		className: 'edge-text',
+		style: {
+			width: size,
+			height: size,
+		},
+	}, [
+		pai && r(VolumeThumbnail, { pai, state }),
+		r(DebugText, { dgo, pai, state }),
+	]));
+};
 
 class Graph extends React.Component {
 	constructor(props) {
@@ -334,22 +377,29 @@ class Graph extends React.Component {
 		);
 	}
 
+	componentDidMount() {
+		this.getIconPath('audio-volume-muted');
+	}
+
 	componentDidUpdate() {
 		forEach(pai => {
 			const icon = getPaiIcon(pai);
-			if (!icon) {
-				return;
+			if (icon) {
+				this.getIconPath(icon);
 			}
-			if (!this._requestedIcons.has(icon) && !this.props.icons[icon]) {
-				this.props.getIconPath(icon, 128);
-			}
-			this._requestedIcons.add(icon);
 		}, flatten(map(values, [
 			this.props.infos.sinks,
 			this.props.infos.sources,
 			this.props.infos.clients,
 			this.props.infos.modules,
 		])));
+	}
+
+	getIconPath(icon) {
+		if (!this._requestedIcons.has(icon) && !this.props.icons[icon]) {
+			this.props.getIconPath(icon, 128);
+		}
+		this._requestedIcons.add(icon);
 	}
 
 	onSelectNode(selected) {

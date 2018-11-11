@@ -1,4 +1,6 @@
 
+const PA_VOLUME_NORM = 0x10000;
+
 const things = [ {
 	method: 'getModules',
 	type: 'module',
@@ -30,5 +32,7 @@ const things = [ {
 } ];
 
 module.exports = {
+	PA_VOLUME_NORM,
+
 	things,
 };
