@@ -55,6 +55,9 @@ button:active {
 .view-wrapper .node.hovered {
 	stroke: var(--themeSelectedBgColor);
 }
+.view-wrapper .node.targeted {
+	stroke: var(--themeSelectedBgColor);
+}
 .view-wrapper .node.selected {
 	fill: var(--themeSelectedBgColor);
 	color: var(--themeSelectedFgColor);

@@ -17,8 +17,6 @@ const r = require('r-dom');
 const { connect } = require('react-redux');
 const { bindActionCreators } = require('redux');
 
-const math = require('mathjs');
-
 const d = require('../../utils/d');
 
 const {

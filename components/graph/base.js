@@ -1,3 +1,4 @@
+/* global document */
 
 const r = require('r-dom');
 
@@ -20,6 +21,28 @@ class GraphView extends GraphViewBase {
 			_super_getEdgeComponent: this.handleNodeMove,
 			getEdgeComponent: this.constructor.prototype.getEdgeComponent.bind(this),
 		});
+	}
+
+	shouldComponentUpdate(nextProps, nextState) {
+		return super.shouldComponentUpdate(nextProps, nextState) ||
+			this.state.edgeEndNode !== nextState.edgeEndNode;
+	}
+
+	componentDidUpdate(prevProps, prevState) {
+		const { nodeKey } = this.props;
+
+		if (this.state.edgeEndNode !== prevState.edgeEndNode) {
+			if (prevState.edgeEndNode) {
+				const prevNode = document.getElementById('node-' + prevState.edgeEndNode[nodeKey]);
+				prevNode.classList.remove('targeted');
+			}
+			if (this.state.edgeEndNode) {
+				const node = document.getElementById('node-' + this.state.edgeEndNode[nodeKey]);
+				node.classList.add('targeted');
+			}
+		}
+
+		super.componentDidUpdate(prevProps, prevState);
 	}
 
 	handleNodeMove(position, nodeId, shiftKey) {
