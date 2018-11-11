@@ -20,7 +20,8 @@
     ]
   },
   "dependencies": {
-    "@futpib/paclient": "^0.0.2",
+    "@futpib/paclient": "^0.0.3",
+    "bluebird": "^3.5.3",
     "camelcase": "^5.0.0",
     "electron-store": "^2.0.0",
     "freedesktop-icons": "^0.1.0",

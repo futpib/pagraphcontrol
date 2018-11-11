@@ -1,4 +1,6 @@
 
+const Bluebird = require('bluebird');
+
 const PAClient = require('@futpib/paclient');
 
 const { handleActions } = require('redux-actions');
@@ -62,6 +64,7 @@ module.exports = store => {
 		})
 		.on('close', () => {
 			store.dispatch(pulseActions.close());
+			reconnect();
 		})
 		.on('new', (type, index) => {
 			store.dispatch(pulseActions.new({ type, index }));
@@ -73,9 +76,23 @@ module.exports = store => {
 		})
 		.on('remove', (type, index) => {
 			store.dispatch(pulseActions.remove({ type, index }));
+		})
+		.on('error', error => {
+			console.error(error);
 		});
 
-	pa.connect();
+	const reconnect = () => new Bluebird((resolve, reject) => {
+		pa.once('ready', resolve);
+		pa.once('error', reject);
+		pa.connect();
+	}).catch(error => {
+		if (error.message === 'Unable to connect to PulseAudio server') {
+			return Bluebird.delay(5000).then(reconnect);
+		}
+		throw error;
+	});
+
+	reconnect();
 
 	const rethrow = error => {
 		if (error) {

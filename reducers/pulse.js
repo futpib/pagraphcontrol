@@ -43,6 +43,7 @@ const reducer = combineReducers({
 			}
 			return omit([ payload.index ], state);
 		},
+		[pulse.close]: () => initialState.objects[key],
 	}, initialState.objects[key]) ], things))),
 
 	infos: combineReducers(fromPairs(map(({ key, type }) => [ key, handleActions({
@@ -60,6 +61,7 @@ const reducer = combineReducers({
 				[payload.index]: payload,
 			});
 		},
+		[pulse.close]: () => initialState.objects[key],
 	}, initialState.infos[key]) ], things))),
 });
 
