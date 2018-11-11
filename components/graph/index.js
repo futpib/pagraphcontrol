@@ -148,6 +148,19 @@ const Module = Client;
 
 const gridDotSize = 2;
 const gridSpacing = 36;
+
+const Marker = ({ id, d }) => r('marker', {
+	id,
+	viewBox: '0 -8 16 16',
+	refX: '16',
+	markerWidth: '16',
+	markerHeight: '16',
+	orient: 'auto',
+}, r.path({
+	className: 'arrow',
+	d,
+}));
+
 const renderDefs = () => r(React.Fragment, [
 	r.pattern({
 		id: 'background-pattern',
@@ -162,29 +175,26 @@ const renderDefs = () => r(React.Fragment, [
 		r: gridDotSize,
 	})),
 
-	r('marker', {
+	r(Marker, {
 		id: 'my-source-arrow',
-		viewBox: '0 -8 16 16',
-		refX: '16',
-		markerWidth: '16',
-		markerHeight: '16',
-		orient: 'auto',
-	}, r.path({
-		className: 'arrow',
 		d: 'M 16,-8 L 0,0 L 16,8',
-	})),
+	}),
 
-	r('marker', {
+	r(Marker, {
 		id: 'my-sink-arrow',
-		viewBox: '0 -8 16 16',
-		refX: '16',
-		markerWidth: '16',
-		markerHeight: '16',
-		orient: 'auto',
-	}, r.path({
-		className: 'arrow',
 		d: 'M 0,-8 L 16,0 L 0,8',
-	})),
+	}),
+
+	// WORKAROUND: `context-fill` did not work
+	r(Marker, {
+		id: 'my-source-arrow-selected',
+		d: 'M 16,-8 L 0,0 L 16,8',
+	}),
+
+	r(Marker, {
+		id: 'my-sink-arrow-selected',
+		d: 'M 0,-8 L 16,0 L 0,8',
+	}),
 ]);
 
 const renderNode = (nodeRef, data, key, selected, hovered) => r({
@@ -262,13 +272,12 @@ const renderNodeText = state => dgo => r('foreignObject', {
 	state,
 })));
 
-const afterRenderEdge = (id, element, edge, edgeContainer) => {
-	if (edge.type) {
-		edgeContainer.classList.add(edge.type);
-	}
-};
-
-const renderEdge = edgeProps => r(Edge, edgeProps);
+const renderEdge = props => r(Edge, {
+	classSet: {
+		[props.data.type]: true,
+	},
+	...props,
+});
 
 const renderEdgeText = state => ({ data, transform }) => r('foreignObject', {
 	transform,
@@ -361,7 +370,8 @@ class Graph extends React.Component {
 		}
 	}
 
-	onSelectEdge() {
+	onSelectEdge(selected) {
+		this.setState({ selected });
 	}
 
 	onCreateEdge() {
@@ -375,7 +385,12 @@ class Graph extends React.Component {
 		}
 	}
 
-	onDeleteEdge() {
+	onDeleteEdge(selected) {
+		if (selected.type === 'sinkInput') {
+			this.props.killSinkInputByIndex(selected.index);
+		} else if (selected.type === 'sourceOutput') {
+			this.props.killSourceOutputByIndex(selected.index);
+		}
 	}
 
 	render() {
@@ -488,7 +503,7 @@ class Graph extends React.Component {
 
 			showGraphControls: false,
 
-			edgeArrowSize: 128,
+			edgeArrowSize: 64,
 
 			backgroundFillId: '#background-pattern',
 
@@ -499,8 +514,6 @@ class Graph extends React.Component {
 
 			renderEdge,
 			renderEdgeText: renderEdgeText(this.props),
-
-			afterRenderEdge,
 		}));
 	}
 }

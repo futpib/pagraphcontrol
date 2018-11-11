@@ -63,14 +63,26 @@ button:active {
 	color: var(--themeSelectedFgColor);
 }
 
+.view-wrapper .graph .edge.selected {
+	stroke: var(--themeSelectedBgColor);
+}
+
+#my-source-arrow-selected > .arrow, #my-sink-arrow-selected > .arrow {
+	fill: var(--themeSelectedBgColor);
+}
+
 .view-wrapper .sourceOutput .edge {
-	/* marker-end: none; */
-	/* marker-start: url(#start-arrow); */
 	marker-end: url(#my-source-arrow);
+}
+.view-wrapper .sourceOutput .edge.selected {
+	marker-end: url(#my-source-arrow-selected);
 }
 
 .view-wrapper .sinkInput .edge {
 	marker-end: url(#my-sink-arrow);
+}
+.view-wrapper .sinkInput .edge.selected {
+	marker-end: url(#my-sink-arrow-selected);
 }
 
 #edge-custom-container .edge {

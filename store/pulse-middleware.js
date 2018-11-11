@@ -109,10 +109,21 @@ module.exports = store => {
 			pa.moveSourceOutput(sourceOutputIndex, destSourceIndex, rethrow);
 			return state;
 		},
+
 		[pulseActions.killClientByIndex]: (state, { payload: { clientIndex } }) => {
 			pa.killClientByIndex(clientIndex, rethrow);
 			return state;
 		},
+
+		[pulseActions.killSinkInputByIndex]: (state, { payload: { sinkInputIndex } }) => {
+			pa.killSinkInputByIndex(sinkInputIndex, rethrow);
+			return state;
+		},
+		[pulseActions.killSourceOutputByIndex]: (state, { payload: { sourceOutputIndex } }) => {
+			pa.killSourceOutputByIndex(sourceOutputIndex, rethrow);
+			return state;
+		},
+
 		[pulseActions.unloadModuleByIndex]: (state, { payload: { moduleIndex } }) => {
 			pa.unloadModuleByIndex(moduleIndex, rethrow);
 			return state;

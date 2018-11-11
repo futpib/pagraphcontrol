@@ -101,7 +101,7 @@ class Edge extends EdgeBase {
 		});
 
 		return r.g({
-			className: 'edge-container',
+			className: 'edge-container ' + (this.props.className || ''),
 			'data-source': data.source,
 			'data-target': data.target,
 		}, [

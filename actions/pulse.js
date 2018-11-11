@@ -16,6 +16,10 @@ module.exports = createActionCreators({
 		MOVE_SOURCE_OUTPUT: (sourceOutputIndex, destSourceIndex) => ({ sourceOutputIndex, destSourceIndex }),
 
 		KILL_CLIENT_BY_INDEX: clientIndex => ({ clientIndex }),
+
+		KILL_SINK_INPUT_BY_INDEX: sinkInputIndex => ({ sinkInputIndex }),
+		KILL_SOURCE_OUTPUT_BY_INDEX: sourceOutputIndex => ({ sourceOutputIndex }),
+
 		UNLOAD_MODULE_BY_INDEX: moduleIndex => ({ moduleIndex }),
 	},
 });

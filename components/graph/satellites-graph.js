@@ -43,6 +43,8 @@ class GraphView extends React.Component {
 			onSwapEdge: this.onSwapEdge.bind(this),
 			onNodeMove: this.onNodeMove.bind(this),
 
+			onSelectEdge: this.onSelectEdge.bind(this),
+
 			renderNode: this.renderNode.bind(this),
 			renderNodeText: this.renderNodeText.bind(this),
 
@@ -96,6 +98,11 @@ class GraphView extends React.Component {
 		}
 	}
 
+	onSelectEdge(edge) {
+		const originalEdge = satelliteEdgeToOriginalEdge.get(edge);
+		this.props.onSelectEdge(originalEdge);
+	}
+
 	renderNode(nodeRef, dgo, key, selected, hovered) {
 		if (dgo.type !== 'satellite') {
 			return this.props.renderNode(nodeRef, dgo, key, selected, hovered);
@@ -127,6 +134,8 @@ class GraphView extends React.Component {
 			return satelliteNodes.concat(node);
 		}, this.props.nodes));
 
+		let { selected } = this.props;
+
 		const edges = flatten(values(mapObjIndexed((edges, target) => mapIndexed((edge, i) => {
 			const satelliteEdge = {
 				id: edge.id,
@@ -136,12 +145,19 @@ class GraphView extends React.Component {
 				index: edge.index,
 				type: edge.type,
 			};
+
+			if (edge === selected) {
+				selected = satelliteEdge;
+			}
+
 			satelliteEdgeToOriginalEdge.set(satelliteEdge, edge);
 			return satelliteEdge;
 		}, edges), edgesByTargetNodeKey)));
 
 		return r(GraphViewBase, {
 			...this.props,
+
+			selected,
 
 			ref: this.graph,
 
@@ -151,10 +167,12 @@ class GraphView extends React.Component {
 			onSwapEdge: this.onSwapEdge,
 			onNodeMove: this.onNodeMove,
 
+			onSelectEdge: this.onSelectEdge,
+
 			renderNode: this.renderNode,
 			renderNodeText: this.renderNodeText,
 
-			afterRenderEdge: this.afterRenderEdge,
+			afterRenderEdge: this.props.afterRenderEdge && this.afterRenderEdge,
 		});
 	}
 }
