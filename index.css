@@ -35,12 +35,14 @@ button:active {
 
 .label {
 	user-select: none;
+
+	cursor: pointer;
+
+	display: block;
+	padding: 0.5rem 0;
 }
 
 .checkbox {
-	user-select: none;
-
-	padding: 8px;
 }
 
 .input {
@@ -48,6 +50,9 @@ button:active {
 	color: var(--themeUnfocusedFgColor);
 	border: 1px solid var(--borders);
 	padding: 4px;
+}
+.input:hover {
+	border-color: var(--themeSelectedBgColor);
 }
 .input:focus {
 	outline: none;
@@ -154,8 +159,9 @@ button:active {
 	background: var(--themeBgColor);
 }
 
-.preferences > div {
-	margin-bottom: 1rem;
+.preferences > hr {
+	border: none;
+	border-top: 1px solid var(--borders);
 }
 
 .view-wrapper .graph .edge-mouse-handler {

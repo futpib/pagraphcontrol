@@ -1,9 +1,9 @@
 
 const r = require('r-dom');
 
-const Checkbox = props => r.label({
-	classSet: { checkbox: true },
-}, [
+const Label = require('../label');
+
+const Checkbox = props => r(Label, [
 	r.input({
 		...props,
 		type: 'checkbox',

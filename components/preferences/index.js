@@ -37,6 +37,8 @@ const Preferences = withStateHandlers(
 		}, 'Close'),
 	]),
 
+	r.hr(),
+
 	r.div([
 		r(Checkbox, {
 			checked: props.preferences.hideDisconnectedClients,
@@ -65,6 +67,8 @@ const Preferences = withStateHandlers(
 		}, 'Hide disconnected sinks'),
 	]),
 
+	r.hr(),
+
 	r.div([
 		r(Checkbox, {
 			checked: props.preferences.hideMonitors,
@@ -78,6 +82,8 @@ const Preferences = withStateHandlers(
 			onChange: () => props.actions.toggle('hidePulseaudioApps'),
 		}, 'Hide pulseaudio applications'),
 	]),
+
+	r.hr(),
 
 	r.div([
 		r(Checkbox, {
@@ -104,12 +110,16 @@ const Preferences = withStateHandlers(
 		}, 'Maximum volume: '),
 	]),
 
+	r.hr(),
+
 	r.div([
 		r(Checkbox, {
 			checked: props.preferences.showDebugInfo,
 			onChange: () => props.actions.toggle('showDebugInfo'),
 		}, 'Show debug info'),
 	]),
+
+	r.hr(),
 
 	r.div([
 		r(Button, {
