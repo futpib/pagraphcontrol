@@ -3,11 +3,11 @@ const {
 	map,
 	values,
 	flatten,
-	memoizeWith,
 	path,
 	filter,
 	forEach,
 	merge,
+	repeat,
 } = require('ramda');
 
 const React = require('react');
@@ -18,6 +18,7 @@ const { connect } = require('react-redux');
 const { bindActionCreators } = require('redux');
 
 const d = require('../../utils/d');
+const memoize = require('../../utils/memoize');
 
 const {
 	pulse: pulseActions,
@@ -30,6 +31,8 @@ const {
 	PA_VOLUME_NORM,
 } = require('../../constants/pulse');
 
+const VolumeSlider = require('../../components/volume-slider');
+
 const {
 	GraphView,
 } = require('./satellites-graph');
@@ -38,17 +41,7 @@ const {
 	Edge,
 } = require('./base');
 
-const weakmapId_ = new WeakMap();
-const weakmapId = o => {
-	if (!weakmapId_.has(o)) {
-		weakmapId_.set(o, String(Math.random()));
-	}
-	return weakmapId_.get(o);
-};
-
 const dgoToPai = new WeakMap();
-
-const memoize = memoizeWith(weakmapId);
 
 const key = pao => `${pao.type}-${pao.index}`;
 
@@ -72,12 +65,12 @@ const paoToNode = memoize(pao => ({
 	type: pao.type,
 }));
 
-const paiToEdge = memoize(pai => ({
-	id: key(pai),
-	source: sourceKey(pai),
-	target: targetKey(pai),
-	index: pai.index,
-	type: pai.type,
+const paoToEdge = memoize(pao => ({
+	id: key(pao),
+	source: sourceKey(pao),
+	target: targetKey(pao),
+	index: pao.index,
+	type: pao.type,
 }));
 
 const getPaiIcon = memoize(pai => {
@@ -211,12 +204,26 @@ const renderNode = (nodeRef, data, key, selected, hovered) => r({
 	hovered,
 });
 
+const getVolumesForThumbnail = ({ pai, state }) => {
+	const { lockChannelsTogether } = state.preferences;
+	let volumes = (pai && pai.channelVolumes) || [];
+	if (lockChannelsTogether) {
+		if (volumes.every(v => v === volumes[0])) {
+			volumes = [
+				volumes.reduce((a, b) => Math.max(a, b)),
+			];
+		}
+	}
+	return volumes;
+};
+
 const VolumeThumbnail = ({ pai, state }) => {
 	if (state.preferences.hideVolumeThumbnails) {
 		return r(React.Fragment);
 	}
+	const { baseVolume } = pai;
 
-	const volumes = (pai && pai.channelVolumes) || [];
+	const volumes = getVolumesForThumbnail({ pai, state });
 	const muted = !pai || pai.muted;
 
 	const step = size / 32;
@@ -229,11 +236,20 @@ const VolumeThumbnail = ({ pai, state }) => {
 			'volume-thumbnail': true,
 			'volume-thumbnail-muted': muted,
 		},
+		height: (2 * padding) + height,
 	}, [
 		r.line({
 			className: 'volume-thumbnail-ruler-line',
 			x1: padding,
 			x2: padding,
+			y1: padding,
+			y2: padding + height,
+		}),
+
+		baseVolume && r.line({
+			className: 'volume-thumbnail-ruler-line',
+			x1: padding + ((baseVolume / PA_VOLUME_NORM) * width),
+			x2: padding + ((baseVolume / PA_VOLUME_NORM) * width),
 			y1: padding,
 			y2: padding + height,
 		}),
@@ -256,6 +272,63 @@ const VolumeThumbnail = ({ pai, state }) => {
 	]);
 };
 
+const getVolumes = ({ pai, state }) => {
+	const { lockChannelsTogether } = state.preferences;
+	let volumes = (pai && pai.channelVolumes) || [];
+	if (lockChannelsTogether) {
+		volumes = [
+			volumes.reduce((a, b) => Math.max(a, b)),
+		];
+	}
+	return { volumes, lockChannelsTogether };
+};
+
+const VolumeControls = ({ pai, state }) => {
+	const { maxVolume } = state.preferences;
+	const { volumes, lockChannelsTogether } = getVolumes({ pai, state });
+	const baseVolume = pai && pai.baseVolume;
+	const muted = !pai || pai.muted;
+
+	return r.div({
+		className: 'volume-controls',
+	}, [
+		...volumes.map((v, channelIndex) => r(VolumeSlider, {
+			muted,
+			baseVolume,
+			normVolume: PA_VOLUME_NORM,
+			maxVolume: PA_VOLUME_NORM * maxVolume,
+			value: v,
+			onChange: v => {
+				if (pai.type === 'sink') {
+					if (lockChannelsTogether) {
+						state.setSinkVolumes(pai.index, repeat(v, pai.sampleSpec.channels));
+					} else {
+						state.setSinkChannelVolume(pai.index, channelIndex, v);
+					}
+				} else if (pai.type === 'source') {
+					if (lockChannelsTogether) {
+						state.setSourceVolumes(pai.index, repeat(v, pai.sampleSpec.channels));
+					} else {
+						state.setSourceChannelVolume(pai.index, channelIndex, v);
+					}
+				} else if (pai.type === 'sinkInput') {
+					if (lockChannelsTogether) {
+						state.setSinkInputVolumes(pai.index, repeat(v, pai.sampleSpec.channels));
+					} else {
+						state.setSinkInputChannelVolume(pai.index, channelIndex, v);
+					}
+				} else if (pai.type === 'sourceOutput') {
+					if (lockChannelsTogether) {
+						state.setSourceOutputVolumes(pai.index, repeat(v, pai.sampleSpec.channels));
+					} else {
+						state.setSourceOutputChannelVolume(pai.index, channelIndex, v);
+					}
+				}
+			},
+		})),
+	]);
+};
+
 const DebugText = ({ dgo, pai, state }) => r.div({
 	style: {
 		fontSize: '50%',
@@ -265,21 +338,23 @@ const DebugText = ({ dgo, pai, state }) => r.div({
 	JSON.stringify(pai, null, 2),
 ] : []);
 
-const SinkText = ({ dgo, pai, state }) => r.div([
+const SinkText = ({ dgo, pai, state, selected }) => r.div([
 	r.div({
 		className: 'node-name',
 		title: pai.name,
 	}, pai.description),
-	r(VolumeThumbnail, { pai, state }),
+	!selected && r(VolumeThumbnail, { pai, state }),
+	selected && r(VolumeControls, { pai, state }),
 	r(DebugText, { dgo, pai, state }),
 ]);
 
-const SourceText = ({ dgo, pai, state }) => r.div([
+const SourceText = ({ dgo, pai, state, selected }) => r.div([
 	r.div({
 		className: 'node-name',
 		title: pai.name,
 	}, pai.description),
-	r(VolumeThumbnail, { pai, state }),
+	!selected && r(VolumeThumbnail, { pai, state }),
+	selected && r(VolumeControls, { pai, state }),
 	r(DebugText, { dgo, pai, state }),
 ]);
 
@@ -299,7 +374,7 @@ const ModuleText = ({ dgo, pai, state }) => r.div([
 	r(DebugText, { dgo, pai, state }),
 ]);
 
-const renderNodeText = state => dgo => r('foreignObject', {
+const renderNodeText = state => (dgo, i, selected) => r('foreignObject', {
 	x: -s2,
 	y: -s2,
 }, r.div({
@@ -319,6 +394,7 @@ const renderNodeText = state => dgo => r('foreignObject', {
 	dgo,
 	pai: dgoToPai.get(dgo),
 	state,
+	selected,
 })));
 
 const renderEdge = props => r(Edge, {
@@ -328,7 +404,7 @@ const renderEdge = props => r(Edge, {
 	...props,
 });
 
-const renderEdgeText = state => ({ data: dgo, transform }) => {
+const renderEdgeText = state => ({ data: dgo, transform, selected }) => {
 	const pai = dgo.type && getPaiByTypeAndIndex(dgo.type, dgo.index)({ pulse: state });
 
 	return r('foreignObject', {
@@ -340,7 +416,8 @@ const renderEdgeText = state => ({ data: dgo, transform }) => {
 			height: size,
 		},
 	}, [
-		pai && r(VolumeThumbnail, { pai, state }),
+		pai && (!selected) && r(VolumeThumbnail, { pai, state }),
+		pai && selected && r(VolumeControls, { pai, state }),
 		r(DebugText, { dgo, pai, state }),
 	]));
 };
@@ -444,9 +521,9 @@ class Graph extends React.Component {
 	}
 
 	render() {
-		let edges = map(paiToEdge, flatten(map(values, [
-			this.props.infos.sinkInputs,
-			this.props.infos.sourceOutputs,
+		let edges = map(paoToEdge, flatten(map(values, [
+			this.props.objects.sinkInputs,
+			this.props.objects.sourceOutputs,
 		])));
 
 		const connectedNodeKeys = new Set();

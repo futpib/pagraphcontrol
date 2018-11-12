@@ -17,6 +17,9 @@ const initialState = {
 	hidePulseaudioApps: true,
 
 	hideVolumeThumbnails: false,
+	lockChannelsTogether: true,
+
+	maxVolume: 1.5,
 
 	showDebugInfo: false,
 };

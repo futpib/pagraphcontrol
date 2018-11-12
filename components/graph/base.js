@@ -4,6 +4,7 @@ const r = require('r-dom');
 
 const {
 	GraphView: GraphViewBase,
+	Node: NodeBase,
 	Edge: EdgeBase,
 	GraphUtils,
 } = require('react-digraph');
@@ -18,8 +19,11 @@ class GraphView extends GraphViewBase {
 			_super_handleNodeMove: this.handleNodeMove,
 			handleNodeMove: this.constructor.prototype.handleNodeMove.bind(this),
 
-			_super_getEdgeComponent: this.handleNodeMove,
+			_super_getEdgeComponent: this.getEdgeComponent,
 			getEdgeComponent: this.constructor.prototype.getEdgeComponent.bind(this),
+
+			_super_getNodeComponent: this.getNodeComponent,
+			getNodeComponent: this.constructor.prototype.getNodeComponent.bind(this),
 		});
 	}
 
@@ -45,6 +49,29 @@ class GraphView extends GraphViewBase {
 		super.componentDidUpdate(prevProps, prevState);
 	}
 
+	getNodeComponent(id, node) {
+		const { nodeTypes, nodeSubtypes, nodeSize, renderNode, renderNodeText, nodeKey } = this.props;
+		return r(Node, {
+			key: id,
+			id,
+			data: node,
+			nodeTypes,
+			nodeSize,
+			nodeKey,
+			nodeSubtypes,
+			onNodeMouseEnter: this.handleNodeMouseEnter,
+			onNodeMouseLeave: this.handleNodeMouseLeave,
+			onNodeMove: this.handleNodeMove,
+			onNodeUpdate: this.handleNodeUpdate,
+			onNodeSelected: this.handleNodeSelected,
+			renderNode,
+			renderNodeText,
+			isSelected: this.state.selectedNodeObj.node === node,
+			layoutEngine: this.layoutEngine,
+			viewWrapperElem: this.viewWrapper.current,
+		});
+	}
+
 	handleNodeMove(position, nodeId, shiftKey) {
 		this._super_handleNodeMove(position, nodeId, shiftKey);
 		if (this.props.onNodeMove) {
@@ -52,7 +79,7 @@ class GraphView extends GraphViewBase {
 		}
 	}
 
-	getEdgeComponent(edge) {
+	getEdgeComponent(edge, nodeMoving) {
 		if (!this.props.renderEdge) {
 			return this._super_getEdgeComponent(edge);
 		}
@@ -74,12 +101,45 @@ class GraphView extends GraphViewBase {
 			targetNode: targetNode || targetPosition,
 			nodeKey,
 			isSelected: selected,
+			nodeMoving,
 			renderEdgeText,
 		});
+	}
+
+	syncRenderEdge(edge, nodeMoving = false) {
+		if (!edge.source) {
+			return;
+		}
+
+		const idVar = edge.target ? `${edge.source}-${edge.target}` : 'custom';
+		const id = `edge-${idVar}`;
+		const element = this.getEdgeComponent(edge, nodeMoving);
+		this.renderEdge(id, element, edge, nodeMoving);
+
+		if (this.isEdgeSelected(edge)) {
+			const container = document.getElementById(`${id}-container`);
+			container.parentNode.appendChild(container);
+		}
 	}
 }
 
 const size = 120;
+
+class Node extends NodeBase {
+	constructor(props) {
+		super(props);
+
+		Object.assign(this, {
+			_super_handleDragEnd: this.handleDragEnd,
+			handleDragEnd: this.constructor.prototype.handleDragEnd.bind(this),
+		});
+	}
+
+	handleDragEnd(...args) {
+		this.oldSibling = null;
+		return this._super_handleDragEnd(...args);
+	}
+}
 
 EdgeBase.calculateOffset = function (nodeSize, source, target) {
 	const arrowVector = math.matrix([ target.x - source.x, target.y - source.y ]);
@@ -112,10 +172,6 @@ class Edge extends EdgeBase {
 					className: 'edge-path',
 					d: this.getPathDescription(data) || undefined,
 				}),
-				this.props.renderEdgeText && r(this.props.renderEdgeText, {
-					data,
-					transform: this.getEdgeHandleTranslation(),
-				}),
 			]),
 			r.g({
 				className: 'edge-mouse-handler',
@@ -127,6 +183,11 @@ class Edge extends EdgeBase {
 					'data-source': data.source,
 					'data-target': data.target,
 					d: this.getPathDescription(data) || undefined,
+				}),
+				this.props.renderEdgeText && !this.props.nodeMoving && r(this.props.renderEdgeText, {
+					data,
+					transform: this.getEdgeHandleTranslation(),
+					selected: this.props.isSelected,
 				}),
 			]),
 		]);

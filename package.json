@@ -6,6 +6,7 @@
   "devDependencies": {
     "ava": "^0.25.0",
     "electron": "^3.0.8",
+    "electron-devtools-installer": "^2.2.4",
     "eslint-config-xo-overrides": "^1.1.2",
     "remotedev-server": "^0.2.6",
     "uws": "^99.0.0",
@@ -20,7 +21,7 @@
     ]
   },
   "dependencies": {
-    "@futpib/paclient": "^0.0.3",
+    "@futpib/paclient": "^0.0.5",
     "bluebird": "^3.5.3",
     "camelcase": "^5.0.0",
     "electron-store": "^2.0.0",

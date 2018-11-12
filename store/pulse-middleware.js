@@ -9,6 +9,8 @@ const { pulse: pulseActions } = require('../actions');
 
 const { things } = require('../constants/pulse');
 
+const { getPaiByTypeAndIndex } = require('../selectors');
+
 function getFnFromType(type) {
 	let fn;
 	switch (type) {
@@ -27,6 +29,23 @@ function getFnFromType(type) {
 			throw new Error('Unexpected type: ' + type);
 	}
 	return 'get' + fn[0].toUpperCase() + fn.slice(1);
+}
+
+function setSinkChannelVolume(pa, store, index, channelIndex, volume, cb) {
+	const pai = getPaiByTypeAndIndex('sink', index)(store.getState());
+	pa.setSinkVolumes(index, pai.channelVolumes.map((v, i) => i === channelIndex ? volume : v), cb);
+}
+function setSourceChannelVolume(pa, store, index, channelIndex, volume, cb) {
+	const pai = getPaiByTypeAndIndex('source', index)(store.getState());
+	pa.setSourceVolumes(index, pai.channelVolumes.map((v, i) => i === channelIndex ? volume : v), cb);
+}
+function setSinkInputChannelVolume(pa, store, index, channelIndex, volume, cb) {
+	const pai = getPaiByTypeAndIndex('sinkInput', index)(store.getState());
+	pa.setSinkInputVolumesByIndex(index, pai.channelVolumes.map((v, i) => i === channelIndex ? volume : v), cb);
+}
+function setSourceOutputChannelVolume(pa, store, index, channelIndex, volume, cb) {
+	const pai = getPaiByTypeAndIndex('sourceOutput', index)(store.getState());
+	pa.setSourceOutputVolumesByIndex(index, pai.channelVolumes.map((v, i) => i === channelIndex ? volume : v), cb);
 }
 
 module.exports = store => {
@@ -128,6 +147,37 @@ module.exports = store => {
 			pa.unloadModuleByIndex(moduleIndex, rethrow);
 			return state;
 		},
+
+		[pulseActions.setSinkVolumes]: (state, { payload: { index, channelVolumes } }) => {
+			pa.setSinkVolumes(index, channelVolumes, rethrow);
+			return state;
+		},
+		[pulseActions.setSourceVolumes]: (state, { payload: { index, channelVolumes } }) => {
+			pa.setSourceVolumes(index, channelVolumes, rethrow);
+			return state;
+		},
+		[pulseActions.setSinkInputVolumes]: (state, { payload: { index, channelVolumes } }) => {
+			pa.setSinkInputVolumesByIndex(index, channelVolumes, rethrow);
+			return state;
+		},
+		[pulseActions.setSourceOutputVolumes]: (state, { payload: { index, channelVolumes } }) => {
+			pa.setSourceOutputVolumesByIndex(index, channelVolumes, rethrow);
+			return state;
+		},
+
+		[pulseActions.setSinkChannelVolume]: (state, { payload: { index, channelIndex, volume } }) => {
+			return setSinkChannelVolume(pa, store, index, channelIndex, volume, rethrow);
+		},
+		[pulseActions.setSourceChannelVolume]: (state, { payload: { index, channelIndex, volume } }) => {
+			return setSourceChannelVolume(pa, store, index, channelIndex, volume, rethrow);
+		},
+		[pulseActions.setSinkInputChannelVolume]: (state, { payload: { index, channelIndex, volume } }) => {
+			return setSinkInputChannelVolume(pa, store, index, channelIndex, volume, rethrow);
+		},
+		[pulseActions.setSourceOutputChannelVolume]: (state, { payload: { index, channelIndex, volume } }) => {
+			return setSourceOutputChannelVolume(pa, store, index, channelIndex, volume, rethrow);
+		},
+
 	}, null);
 
 	return next => action => {

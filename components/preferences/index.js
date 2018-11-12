@@ -1,6 +1,7 @@
 
 const {
 	pick,
+	defaultTo,
 } = require('ramda');
 
 const r = require('r-dom');
@@ -14,6 +15,7 @@ const { preferences: preferencesActions } = require('../../actions');
 
 const Button = require('../button');
 const Checkbox = require('../checkbox');
+const NumberInput = require('../number-input');
 
 const Preferences = withStateHandlers(
 	{
@@ -82,6 +84,24 @@ const Preferences = withStateHandlers(
 			checked: props.preferences.hideVolumeThumbnails,
 			onChange: () => props.actions.toggle('hideVolumeThumbnails'),
 		}, 'Hide volume thumbnails'),
+	]),
+
+	r.div([
+		r(Checkbox, {
+			checked: props.preferences.lockChannelsTogether,
+			onChange: () => props.actions.toggle('lockChannelsTogether'),
+		}, 'Lock channels together'),
+	]),
+
+	r.div([
+		r(NumberInput, {
+			type: 'number',
+			value: defaultTo(150, Math.round(props.preferences.maxVolume * 100)),
+			onChange: e => {
+				const v = defaultTo(150, Math.max(0, parseInt(e.target.value, 10)));
+				props.actions.set({ maxVolume: v / 100 });
+			},
+		}, 'Maximum volume: '),
 	]),
 
 	r.div([

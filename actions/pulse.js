@@ -21,5 +21,15 @@ module.exports = createActionCreators({
 		KILL_SOURCE_OUTPUT_BY_INDEX: sourceOutputIndex => ({ sourceOutputIndex }),
 
 		UNLOAD_MODULE_BY_INDEX: moduleIndex => ({ moduleIndex }),
+
+		SET_SINK_VOLUMES: (index, channelVolumes) => ({ index, channelVolumes }),
+		SET_SOURCE_VOLUMES: (index, channelVolumes) => ({ index, channelVolumes }),
+		SET_SINK_INPUT_VOLUMES: (index, channelVolumes) => ({ index, channelVolumes }),
+		SET_SOURCE_OUTPUT_VOLUMES: (index, channelVolumes) => ({ index, channelVolumes }),
+
+		SET_SINK_CHANNEL_VOLUME: (index, channelIndex, volume) => ({ index, channelIndex, volume }),
+		SET_SOURCE_CHANNEL_VOLUME: (index, channelIndex, volume) => ({ index, channelIndex, volume }),
+		SET_SINK_INPUT_CHANNEL_VOLUME: (index, channelIndex, volume) => ({ index, channelIndex, volume }),
+		SET_SOURCE_OUTPUT_CHANNEL_VOLUME: (index, channelIndex, volume) => ({ index, channelIndex, volume }),
 	},
 });

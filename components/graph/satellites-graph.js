@@ -5,9 +5,6 @@ const {
 	prop,
 	groupBy,
 	flatten,
-	addIndex,
-	mapObjIndexed,
-	values,
 } = require('ramda');
 
 const React = require('react');
@@ -16,11 +13,39 @@ const r = require('r-dom');
 
 const plusMinus = require('../../utils/plus-minus');
 
+const memoize = require('../../utils/memoize');
+
 const {
 	GraphView: GraphViewBase,
 } = require('./base');
 
-const mapIndexed = addIndex(map);
+const originalEdgeToSatelliteNode = edge => ({
+	id: `${edge.target}__satellite__${edge.id}`,
+	edge: edge.id,
+	source: edge.source,
+	target: edge.target,
+	type: 'satellite',
+});
+
+const originalEdgeAndSatelliteNodeToSatelliteEdge = (edge, satelliteNode) => {
+	const satelliteEdge = {
+		id: edge.id,
+		source: edge.source,
+		target: satelliteNode.id,
+		originalTarget: edge.target,
+		index: edge.index,
+		type: edge.type,
+	};
+
+	satelliteEdgeToOriginalEdge.set(satelliteEdge, edge);
+	return satelliteEdge;
+};
+
+const originalEdgeToSatellites = memoize(edge => {
+	const satelliteNode = originalEdgeToSatelliteNode(edge);
+	const satelliteEdge = originalEdgeAndSatelliteNodeToSatelliteEdge(edge, satelliteNode);
+	return { satelliteEdge, satelliteNode };
+});
 
 const Satellite = () => r(React.Fragment);
 
@@ -33,8 +58,10 @@ class GraphView extends React.Component {
 		super(props);
 
 		this.state = {
-			edgesByTargetNodeKey: {},
+			originalEdgesByTargetNodeKey: {},
 			satelliteNodesByTargetNodeKey: {},
+			satelliteEdges: [],
+			selected: null,
 		};
 
 		this.graph = React.createRef();
@@ -48,23 +75,41 @@ class GraphView extends React.Component {
 			renderNode: this.renderNode.bind(this),
 			renderNodeText: this.renderNodeText.bind(this),
 
+			renderEdge: this.renderEdge.bind(this),
+			renderEdgeText: this.renderEdgeText.bind(this),
+
 			afterRenderEdge: this.afterRenderEdge.bind(this),
 		});
 	}
 
 	static getDerivedStateFromProps(props) {
-		const { nodeKey, edgeKey } = props;
+		const originalEdgesByTargetNodeKey = groupBy(prop('target'), props.edges);
 
-		const edgesByTargetNodeKey = groupBy(prop('target'), props.edges);
-		const satelliteNodesByTargetNodeKey = map(map(edge => ({
-			[nodeKey]: `${edge.target}__satellite__${edge[edgeKey]}`,
-			edge: edge[edgeKey],
-			source: edge.source,
-			target: edge.target,
-			type: 'satellite',
-		})), edgesByTargetNodeKey);
+		let { selected } = props;
 
-		return { edgesByTargetNodeKey, satelliteNodesByTargetNodeKey };
+		const satelliteEdges = [];
+
+		const satelliteNodesByTargetNodeKey = map(edges => map(edge => {
+			const {
+				satelliteNode,
+				satelliteEdge,
+			} = originalEdgeToSatellites(edge);
+
+			if (edge === selected) {
+				selected = satelliteEdge;
+			}
+
+			satelliteEdges.push(satelliteEdge);
+
+			return satelliteNode;
+		}, edges), originalEdgesByTargetNodeKey);
+
+		return {
+			originalEdgesByTargetNodeKey,
+			satelliteNodesByTargetNodeKey,
+			satelliteEdges,
+			selected,
+		};
 	}
 
 	static repositionSatellites(position, satelliteNodes) {
@@ -119,6 +164,14 @@ class GraphView extends React.Component {
 		return r(React.Fragment);
 	}
 
+	renderEdge(...args) {
+		return this.props.renderEdge(...args);
+	}
+
+	renderEdgeText(...args) {
+		return this.props.renderEdgeText(...args);
+	}
+
 	afterRenderEdge(id, element, edge, edgeContainer) {
 		const originalEdge = satelliteEdgeToOriginalEdge.get(edge);
 		this.props.afterRenderEdge(id, element, originalEdge || edge, edgeContainer);
@@ -126,33 +179,17 @@ class GraphView extends React.Component {
 
 	render() {
 		const { nodeKey } = this.props;
-		const { edgesByTargetNodeKey, satelliteNodesByTargetNodeKey } = this.state;
+		const {
+			satelliteNodesByTargetNodeKey,
+			satelliteEdges: edges,
+			selected,
+		} = this.state;
 
 		const nodes = flatten(map(node => {
 			const satelliteNodes = satelliteNodesByTargetNodeKey[node[nodeKey]] || [];
 			this.constructor.repositionSatellites(node, satelliteNodes);
 			return satelliteNodes.concat(node);
 		}, this.props.nodes));
-
-		let { selected } = this.props;
-
-		const edges = flatten(values(mapObjIndexed((edges, target) => mapIndexed((edge, i) => {
-			const satelliteEdge = {
-				id: edge.id,
-				source: edge.source,
-				target: satelliteNodesByTargetNodeKey[target][i][nodeKey],
-				originalTarget: edge.target,
-				index: edge.index,
-				type: edge.type,
-			};
-
-			if (edge === selected) {
-				selected = satelliteEdge;
-			}
-
-			satelliteEdgeToOriginalEdge.set(satelliteEdge, edge);
-			return satelliteEdge;
-		}, edges), edgesByTargetNodeKey)));
 
 		return r(GraphViewBase, {
 			...this.props,
@@ -171,6 +208,9 @@ class GraphView extends React.Component {
 
 			renderNode: this.renderNode,
 			renderNodeText: this.renderNodeText,
+
+			renderEdge: this.renderEdge,
+			renderEdgeText: this.renderEdgeText,
 
 			afterRenderEdge: this.props.afterRenderEdge && this.afterRenderEdge,
 		});

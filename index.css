@@ -33,10 +33,28 @@ button:active {
 	top: 1px;
 }
 
+.label {
+	user-select: none;
+}
+
 .checkbox {
 	user-select: none;
 
 	padding: 8px;
+}
+
+.input {
+	background: var(--themeUnfocusedBaseColor);
+	color: var(--themeUnfocusedFgColor);
+	border: 1px solid var(--borders);
+	padding: 4px;
+}
+.input:focus {
+	outline: none;
+	border-color: var(--themeSelectedBgColor);
+}
+.input[type="number"] {
+	width: 64px;
 }
 
 .view-wrapper .graph {
@@ -61,6 +79,10 @@ button:active {
 .view-wrapper .node.selected {
 	fill: var(--themeSelectedBgColor);
 	color: var(--themeSelectedFgColor);
+}
+
+.view-wrapper .edge-container:hover .edge {
+	stroke: var(--themeSelectedBgColor);
 }
 
 .view-wrapper .graph .edge.selected {
@@ -90,6 +112,7 @@ button:active {
 
 #edge-custom-container .edge-path {
 	marker-end: none;
+	stroke: var(--themeSelectedBgColor);
 }
 
 .view-wrapper .graph .edge {
@@ -98,6 +121,16 @@ button:active {
 
 .view-wrapper .graph .arrow {
 	fill: var(--borders);
+}
+
+.view-wrapper .edge-mouse-handler.edge-mouse-handler {
+	opacity: 1;
+}
+.view-wrapper .edge-mouse-handler .edge-overlay-path {
+	opacity: 0;
+}
+.view-wrapper .edge-mouse-handler .edge-text {
+	opacity: 1;
 }
 
 .preferences {
@@ -171,4 +204,47 @@ button:active {
 
 .edge-text {
 	pointer-events: none;
+}
+
+.volume-controls {
+	background: var(--themeBgColor);
+	border: 1px solid var(--borders);
+
+	pointer-events: initial;
+	padding: 2px;
+
+	width: 308px;
+
+	margin-left: -50%;
+}
+
+.volume-controls:hover {
+	border-color: var(--themeSelectedBgColor);
+}
+
+.volume-slider-norm-mark, .volume-slider-base-mark {
+	stroke: var(--borders);
+	stroke-width: 1px;
+}
+
+.volume-slider-bg {
+	stroke: var(--borders);
+	stroke-width: 6px;
+	stroke-linecap: round;
+}
+
+.volume-slider-fill {
+	stroke: var(--successColor);
+	stroke-width: 6px;
+	stroke-linecap: round;
+}
+
+.volume-slider-handle {
+	fill: var(--themeBgColor);
+	stroke: var(--borders);
+	stroke-width: 1px;
+}
+
+.volume-slider-handle:hover {
+	stroke: var(--themeSelectedBgColor);
 }

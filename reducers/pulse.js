@@ -5,6 +5,8 @@ const {
 	omit,
 	fromPairs,
 	map,
+	pick,
+	equals,
 } = require('ramda');
 
 const { combineReducers } = require('redux');
@@ -33,6 +35,9 @@ const reducer = combineReducers({
 			if (payload.type !== type) {
 				return state;
 			}
+			if (payload.type === 'sinkInput' || payload.type === 'sourceOutput') {
+				return state;
+			}
 			return merge(state, {
 				[payload.index]: payload,
 			});
@@ -42,6 +47,32 @@ const reducer = combineReducers({
 				return state;
 			}
 			return omit([ payload.index ], state);
+		},
+		[pulse.info]: (state, { payload }) => {
+			if (payload.type !== type) {
+				return state;
+			}
+			if (payload.type === 'sinkInput' || payload.type === 'sourceOutput') {
+				const newPao = pick([
+					'type',
+					'index',
+					'moduleIndex',
+					'clientIndex',
+					'sinkIndex',
+					'sourceIndex',
+				], payload);
+
+				const oldPao = state[payload.index];
+
+				if (equals(newPao, oldPao)) {
+					return state;
+				}
+
+				return merge(state, {
+					[newPao.index]: newPao,
+				});
+			}
+			return state;
 		},
 		[pulse.close]: () => initialState.objects[key],
 	}, initialState.objects[key]) ], things))),
