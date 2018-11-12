@@ -111,9 +111,9 @@ class GraphView extends React.Component {
 		return r(Satellite);
 	}
 
-	renderNodeText(dgo) {
+	renderNodeText(dgo, ...rest) {
 		if (dgo.type !== 'satellite') {
-			return this.props.renderNodeText(dgo);
+			return this.props.renderNodeText(dgo, ...rest);
 		}
 
 		return r(React.Fragment);
