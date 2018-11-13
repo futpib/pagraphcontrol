@@ -34,6 +34,7 @@ const Preferences = withStateHandlers(
 	r.div([
 		r(Button, {
 			style: { width: '100%' },
+			autoFocus: true,
 			onClick: toggle,
 		}, 'Close'),
 	]),
@@ -130,6 +131,7 @@ const Preferences = withStateHandlers(
 	]),
 ] : [
 	r(Button, {
+		autoFocus: true,
 		onClick: toggle,
 	}, 'Preferences'),
 ]));
