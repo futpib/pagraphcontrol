@@ -1,8 +1,12 @@
-/* global document */
+/* global window */
 
 const React = require('react');
 
 const r = require('r-dom');
+
+const d3 = require('d3');
+
+const { devicePixelRatio } = window;
 
 const width = 300;
 const height = 18;
@@ -29,56 +33,48 @@ module.exports = class VolumeSlider extends React.Component {
 		};
 
 		Object.assign(this, {
-			handlePointerDown: this.handlePointerDown.bind(this),
+			handleDragStart: this.handleDragStart.bind(this),
+			handleDrag: this.handleDrag.bind(this),
+			handleDragEnd: this.handleDragEnd.bind(this),
 		});
 	}
 
 	componentDidMount() {
-		this.svg.current.addEventListener('pointerdown', this.handlePointerDown);
+		const dragFunction = d3
+			.drag()
+			.on('start', this.handleDragStart)
+			.on('drag', this.handleDrag)
+			.on('end', this.handleDragEnd);
+
+		this._selection = d3
+			.select(this.svg.current.querySelector('.volume-slider-handle'))
+			.call(dragFunction);
 	}
 
 	componentWillUnmount() {
-		this.svg.current.removeEventListener('pointerdown', this.handlePointerDown);
+		this._selection.on('.node', null);
 	}
 
-	handlePointerDown(e) {
-		e.preventDefault();
-		e.stopPropagation();
-
-		const originX = e.clientX - e.offsetX;
-
-		const move = e => {
-			if (this.state.draggingX !== null) {
-				this.setState({
-					draggingX: clamp(e.clientX - originX),
-				});
-			}
-		};
-
-		const up = e => {
-			this.setState({
-				draggingX: null,
-			});
-
-			document.removeEventListener('pointermove', move);
-			document.removeEventListener('pointerup', up);
-
-			e.preventDefault();
-			e.stopPropagation();
-		};
-
-		const click = e => {
-			e.preventDefault();
-			e.stopPropagation();
-			document.removeEventListener('click', click, true);
-		};
-
-		document.addEventListener('pointermove', move);
-		document.addEventListener('pointerup', up);
-		document.addEventListener('click', click, true);
-
+	handleDragStart() {
+		this._startX = d3.event.x;
+		this._offsetX = d3.event.sourceEvent.offsetX;
 		this.setState({
-			draggingX: clamp(e.offsetX),
+			draggingX: clamp(this._offsetX * devicePixelRatio),
+		});
+	}
+
+	handleDrag() {
+		if (this.state.draggingX !== null) {
+			const draggingX = ((d3.event.x - this._startX) + this._offsetX) * devicePixelRatio;
+			this.setState({
+				draggingX: clamp(draggingX),
+			});
+		}
+	}
+
+	handleDragEnd() {
+		this.setState({
+			draggingX: null,
 		});
 	}
 
