@@ -21,7 +21,7 @@
     ]
   },
   "dependencies": {
-    "@futpib/paclient": "^0.0.5",
+    "@futpib/paclient": "^0.0.7",
     "bluebird": "^3.5.3",
     "camelcase": "^5.0.0",
     "electron-store": "^2.0.0",

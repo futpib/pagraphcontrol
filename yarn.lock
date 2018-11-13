@@ -84,10 +84,10 @@
   dependencies:
     arrify "^1.0.1"
 
-"@futpib/paclient@^0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@futpib/paclient/-/paclient-0.0.5.tgz#0de89ee7175e3de994bc298ddb1e461aa3007543"
-  integrity sha512-49jeRSEOXto3MntDj2Dzm4t7U9M0X41seqF+T/xwFRYk/pBUKdiXHuofNFJvn4rwM7P4BVjxU6fRpCOEAxH/VA==
+"@futpib/paclient@^0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@futpib/paclient/-/paclient-0.0.7.tgz#d8957135ba81888f5e92812d8e9e4e8e1ebf935f"
+  integrity sha512-fjpJaS3LHuo+51/7g3dqpZBGO2wZtnLAWYKVk5CIBsfqn3345xJaEe0HfLpBxPAdpAHRTcTz5aWXlhOWsBClHA==
 
 "@ladjs/time-require@^0.1.4":
   version "0.1.4"

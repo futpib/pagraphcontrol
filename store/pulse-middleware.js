@@ -51,17 +51,30 @@ function setSourceOutputChannelVolume(pa, store, index, channelIndex, volume, cb
 module.exports = store => {
 	const pa = new PAClient();
 
-	const getInfo = (type, index) => pa[getFnFromType(type)](index, (err, info) => {
-		if (err) {
-			if (err.message === 'No such entity') {
-				console.warn(err.message, type, index);
+	const getInfo = (type, index) => {
+		let method;
+		try {
+			method = getFnFromType(type);
+		} catch (error) {
+			if (error.message.startsWith('Unexpected type:')) {
+				console.warn(error);
 				return;
 			}
-			throw err;
+			throw error;
 		}
-		info.type = info.type || type;
-		store.dispatch(pulseActions.info(info));
-	});
+
+		pa[method](index, (err, info) => {
+			if (err) {
+				if (err.message === 'No such entity') {
+					console.warn(err.message, type, index);
+					return;
+				}
+				throw err;
+			}
+			info.type = info.type || type;
+			store.dispatch(pulseActions.info(info));
+		});
+	};
 
 	pa
 		.on('ready', () => {
@@ -178,6 +191,10 @@ module.exports = store => {
 			return setSourceOutputChannelVolume(pa, store, index, channelIndex, volume, rethrow);
 		},
 
+		[pulseActions.setCardProfile]: (state, { payload: { index, profileName } }) => {
+			pa.setCardProfile(index, profileName, rethrow);
+			return state;
+		},
 	}, null);
 
 	return next => action => {

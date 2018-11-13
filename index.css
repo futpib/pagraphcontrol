@@ -9,7 +9,7 @@ div {
 	box-sizing: border-box;
 }
 
-button {
+.button {
 	background: var(--themeBgColor);
 	color: var(--themeTextColor);
 	border: 1px solid var(--borders);
@@ -18,16 +18,16 @@ button {
 	padding: 8px;
 }
 
-button:hover {
+.button:hover {
 	border-color: var(--themeSelectedBgColor);
 }
 
-button:focus {
+.button:focus {
 	outline: none;
 	border-color: var(--themeSelectedBgColor);
 }
 
-button:active {
+.button:active {
 	background: var(--themeSelectedBgColor);
 	position: relative;
 	top: 1px;
@@ -60,6 +60,21 @@ button:active {
 }
 .input[type="number"] {
 	width: 64px;
+}
+
+.select {
+	background: var(--themeUnfocusedBgColor);
+	color: var(--themeUnfocusedFgColor);
+	border: 1px solid var(--borders);
+	padding: 4px;
+	cursor: pointer;
+}
+.select:hover {
+	border-color: var(--themeSelectedBgColor);
+}
+.select:focus {
+	outline: none;
+	border-color: var(--themeSelectedBgColor);
 }
 
 .view-wrapper .graph {
@@ -138,28 +153,35 @@ button:active {
 	opacity: 1;
 }
 
-.preferences {
+.panel {
 	position: absolute;
-	right: 0;
 	top: 0;
 	bottom: 0;
 	padding: 1rem;
 	overflow: auto;
 }
 
-.preferences:not(.open) {
+.cards {
+	left: 0;
+}
+
+.preferences {
+	right: 0;
+}
+
+.panel:not(.open) {
 	pointer-events: none;
 }
 
-.preferences:not(.open) > * {
+.panel:not(.open) > * {
 	pointer-events: initial;
 }
 
-.preferences.open {
+.panel.open {
 	background: var(--themeBgColor);
 }
 
-.preferences > hr {
+.panel > hr {
 	border: none;
 	border-top: 1px solid var(--borders);
 }

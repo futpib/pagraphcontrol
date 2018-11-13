@@ -31,5 +31,7 @@ module.exports = createActionCreators({
 		SET_SOURCE_CHANNEL_VOLUME: (index, channelIndex, volume) => ({ index, channelIndex, volume }),
 		SET_SINK_INPUT_CHANNEL_VOLUME: (index, channelIndex, volume) => ({ index, channelIndex, volume }),
 		SET_SOURCE_OUTPUT_CHANNEL_VOLUME: (index, channelIndex, volume) => ({ index, channelIndex, volume }),
+
+		SET_CARD_PROFILE: (index, profileName) => ({ index, profileName }),
 	},
 });

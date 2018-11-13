@@ -26,6 +26,7 @@ const Preferences = withStateHandlers(
 	},
 )(({ open, toggle, ...props }) => r.div({
 	classSet: {
+		panel: true,
 		preferences: true,
 		open,
 	},
