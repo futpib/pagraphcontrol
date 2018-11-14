@@ -1,5 +1,9 @@
 /* global document */
 
+const {
+	merge,
+} = require('ramda');
+
 const r = require('r-dom');
 
 const {
@@ -13,7 +17,17 @@ const math = require('mathjs');
 
 class GraphView extends GraphViewBase {
 	constructor(props) {
+		if (!props.layoutEngine) {
+			props = merge(props, {
+				layoutEngineType: 'None',
+			});
+		}
+
 		super(props);
+
+		if (props.layoutEngine) {
+			this.layoutEngine = props.layoutEngine;
+		}
 
 		Object.assign(this, {
 			_super_handleNodeMove: this.handleNodeMove,
@@ -25,6 +39,16 @@ class GraphView extends GraphViewBase {
 			_super_getNodeComponent: this.getNodeComponent,
 			getNodeComponent: this.constructor.prototype.getNodeComponent.bind(this),
 		});
+	}
+
+	static getDerivedStateFromProps(props, state) {
+		const derivedState = super.getDerivedStateFromProps(props, state);
+
+		if (props.layoutEngine) {
+			derivedState.nodes = props.layoutEngine.adjustNodes(derivedState.nodes, derivedState.nodesMap);
+		}
+
+		return derivedState;
 	}
 
 	shouldComponentUpdate(nextProps, nextState) {
@@ -122,6 +146,10 @@ class GraphView extends GraphViewBase {
 		}
 	}
 }
+
+GraphView.defaultProps = merge(GraphViewBase.defaultProps, {
+	layoutEngineType: null,
+});
 
 const size = 120;
 

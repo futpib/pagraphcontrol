@@ -41,6 +41,8 @@ const {
 	Edge,
 } = require('./base');
 
+const LayoutEngine = require('./layout-engine');
+
 const dgoToPai = new WeakMap();
 
 const key = pao => `${pao.type}-${pao.index}`;
@@ -422,6 +424,8 @@ const renderEdgeText = state => ({ data: dgo, transform, selected }) => {
 	]));
 };
 
+const layoutEngine = new LayoutEngine();
+
 class Graph extends React.Component {
 	constructor(props) {
 		super(props);
@@ -580,22 +584,6 @@ class Graph extends React.Component {
 		}, edges);
 
 		nodes.forEach(node => {
-			if (node.x !== undefined) {
-				return;
-			}
-
-			if (node.type === 'source') {
-				node.x = 0 * size;
-			} else if (node.type === 'sink') {
-				node.x = 10 * size;
-			} else {
-				node.x = (2 * size) + (Math.round(6 * Math.random()) * size);
-			}
-
-			node.y = Math.random() * 1200;
-		});
-
-		nodes.forEach(node => {
 			const pai = getPaiByTypeAndIndex(node.type, node.index)({ pulse: this.props });
 			dgoToPai.set(node, pai);
 		});
@@ -631,6 +619,8 @@ class Graph extends React.Component {
 			showGraphControls: false,
 
 			edgeArrowSize: 64,
+
+			layoutEngine,
 
 			backgroundFillId: '#background-pattern',
 
