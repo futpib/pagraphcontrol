@@ -40,6 +40,9 @@ class GraphView extends GraphViewBase {
 
 			_super_getNodeComponent: this.getNodeComponent,
 			getNodeComponent: this.constructor.prototype.getNodeComponent.bind(this),
+
+			_super_handleNodeMouseEnter: this.handleNodeMouseEnter,
+			handleNodeMouseEnter: this.constructor.prototype.handleNodeMouseEnter.bind(this),
 		});
 	}
 
@@ -102,6 +105,24 @@ class GraphView extends GraphViewBase {
 		this._super_handleNodeMove(position, nodeId, shiftKey);
 		if (this.props.onNodeMove) {
 			this.props.onNodeMove(position, nodeId, shiftKey);
+		}
+	}
+
+	handleNodeMouseEnter(event, data, hovered) {
+		if (hovered && !this.state.hoveredNode) {
+			this.setState({
+				hoveredNode: true,
+				hoveredNodeData: data,
+			});
+		} else if (!hovered && this.state.draggingEdge) {
+			this.setState({
+				edgeEndNode: data,
+			});
+		} else {
+			this.setState({
+				hoveredNode: true,
+				hoveredNodeData: data,
+			});
 		}
 	}
 
