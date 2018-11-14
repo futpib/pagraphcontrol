@@ -15,6 +15,8 @@ const {
 
 const math = require('mathjs');
 
+const { size } = require('../../constants/view');
+
 class GraphView extends GraphViewBase {
 	constructor(props) {
 		if (!props.layoutEngine) {
@@ -150,8 +152,6 @@ class GraphView extends GraphViewBase {
 GraphView.defaultProps = merge(GraphViewBase.defaultProps, {
 	layoutEngineType: null,
 });
-
-const size = 120;
 
 class Node extends NodeBase {
 	constructor(props) {

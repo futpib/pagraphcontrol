@@ -31,6 +31,8 @@ const {
 	PA_VOLUME_NORM,
 } = require('../../constants/pulse');
 
+const { size } = require('../../constants/view');
+
 const VolumeSlider = require('../../components/volume-slider');
 
 const {
@@ -106,7 +108,6 @@ const graphConfig = {
 	},
 };
 
-const size = 120;
 const s2 = size / 2;
 
 const Sink = () => r.path({
