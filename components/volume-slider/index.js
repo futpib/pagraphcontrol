@@ -57,7 +57,7 @@ module.exports = class VolumeSlider extends React.Component {
 
 	handleDragStart() {
 		this._startX = d3.event.x;
-		this._offsetX = d3.event.sourceEvent.offsetX;
+		this._offsetX = d3.event.sourceEvent.offsetX || (this._lastRenderedX / devicePixelRatio);
 		this.setState({
 			draggingX: clamp(this._offsetX * devicePixelRatio),
 		});
@@ -107,6 +107,8 @@ module.exports = class VolumeSlider extends React.Component {
 		const x = draggingX === null ?
 			((height / 2) + vol2pix(value, maxVolume)) :
 			draggingX;
+
+		this._lastRenderedX = x;
 
 		const baseX = (height / 2) + vol2pix(baseVolume, maxVolume);
 		const normX = (height / 2) + vol2pix(normVolume, maxVolume);
