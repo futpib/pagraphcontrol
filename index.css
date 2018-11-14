@@ -143,6 +143,10 @@ div {
 	stroke: var(--themeSelectedBgColor);
 }
 
+#edge-custom-container, #edge-custom-container .edge-mouse-handler {
+	pointer-events: none;
+}
+
 .view-wrapper .graph .edge {
 	stroke: var(--borders);
 }
