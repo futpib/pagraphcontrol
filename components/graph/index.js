@@ -97,24 +97,7 @@ const graphConfig = {
 
 	nodeSubtypes: {},
 
-	edgeTypes: {
-		sinkInput: {
-			shapeId: '#sinkInput',
-			shape: r('symbol', {
-				viewBox: '0 0 50 50',
-				id: 'sinkInput',
-				key: '0',
-			}),
-		},
-		sourceOutput: {
-			shapeId: '#sourceOutput',
-			shape: r('symbol', {
-				viewBox: '0 0 50 50',
-				id: 'sourceOutput',
-				key: '0',
-			}),
-		},
-	},
+	edgeTypes: {},
 };
 
 const s2 = size / 2;
@@ -160,7 +143,7 @@ const gridSpacing = 36;
 
 const Marker = ({ id, d }) => r('marker', {
 	id,
-	viewBox: '0 -8 16 16',
+	viewBox: '0 -8 18 16',
 	refX: '16',
 	markerWidth: '16',
 	markerHeight: '16',
@@ -169,6 +152,9 @@ const Marker = ({ id, d }) => r('marker', {
 	className: 'arrow',
 	d,
 }));
+
+const sourceArrowPathDescription = 'M 16,-8 L 0,0 L 16,8';
+const sinkArrowPathDescription = 'M 2,-8 L 18,0 L 2,8';
 
 const renderDefs = () => r(React.Fragment, [
 	r.pattern({
@@ -186,23 +172,23 @@ const renderDefs = () => r(React.Fragment, [
 
 	r(Marker, {
 		id: 'my-source-arrow',
-		d: 'M 16,-8 L 0,0 L 16,8',
+		d: sourceArrowPathDescription,
 	}),
 
 	r(Marker, {
 		id: 'my-sink-arrow',
-		d: 'M 0,-8 L 16,0 L 0,8',
+		d: sinkArrowPathDescription,
 	}),
 
 	// WORKAROUND: `context-fill` did not work
 	r(Marker, {
 		id: 'my-source-arrow-selected',
-		d: 'M 16,-8 L 0,0 L 16,8',
+		d: sourceArrowPathDescription,
 	}),
 
 	r(Marker, {
 		id: 'my-sink-arrow-selected',
-		d: 'M 0,-8 L 16,0 L 0,8',
+		d: sinkArrowPathDescription,
 	}),
 ]);
 
