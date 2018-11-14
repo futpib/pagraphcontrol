@@ -73,6 +73,13 @@ const Preferences = withStateHandlers(
 
 	r.div([
 		r(Checkbox, {
+			checked: props.preferences.hideMonitorSourceEdges,
+			onChange: () => props.actions.toggle('hideMonitorSourceEdges'),
+		}, 'Hide monitor source edges'),
+	]),
+
+	r.div([
+		r(Checkbox, {
 			checked: props.preferences.hideMonitors,
 			onChange: () => props.actions.toggle('hideMonitors'),
 		}, 'Hide monitors'),

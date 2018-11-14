@@ -25,7 +25,10 @@ const {
 	icons: iconsActions,
 } = require('../../actions');
 
-const { getPaiByTypeAndIndex } = require('../../selectors');
+const {
+	getPaiByTypeAndIndex,
+	getDerivedMonitorSources,
+} = require('../../selectors');
 
 const {
 	PA_VOLUME_NORM,
@@ -50,6 +53,9 @@ const dgoToPai = new WeakMap();
 const key = pao => `${pao.type}-${pao.index}`;
 
 const sourceKey = pai => {
+	if (pai.type === 'monitorSource') {
+		return `sink-${pai.sinkIndex}`;
+	}
 	if (pai.clientIndex === -1) {
 		return `module-${pai.moduleIndex}`;
 	}
@@ -57,6 +63,9 @@ const sourceKey = pai => {
 };
 
 const targetKey = pai => {
+	if (pai.type === 'monitorSource') {
+		return `source-${pai.sourceIndex}`;
+	}
 	if (pai.type === 'sinkInput') {
 		return `sink-${pai.sinkIndex}`;
 	}
@@ -377,28 +386,36 @@ const ModuleText = ({ dgo, pai, state }) => r.div([
 	r(DebugText, { dgo, pai, state }),
 ]);
 
-const renderNodeText = state => (dgo, i, selected) => r('foreignObject', {
-	x: -s2,
-	y: -s2,
-}, r.div({
-	className: 'node-text',
-	style: {
-		width: size,
-		height: size,
+const renderNodeText = state => (dgo, i, selected) => {
+	const pai = dgoToPai.get(dgo);
 
-		backgroundImage: (icon => icon && `url(${icon})`)(state.icons[getPaiIcon(dgoToPai.get(dgo))]),
-	},
-}, r({
-	sink: SinkText,
-	source: SourceText,
-	client: ClientText,
-	module: ModuleText,
-}[dgo.type] || ModuleText, {
-	dgo,
-	pai: dgoToPai.get(dgo),
-	state,
-	selected,
-})));
+	if (!pai) {
+		return r(React.Fragment);
+	}
+
+	return r('foreignObject', {
+		x: -s2,
+		y: -s2,
+	}, r.div({
+		className: 'node-text',
+		style: {
+			width: size,
+			height: size,
+
+			backgroundImage: (icon => icon && `url(${icon})`)(state.icons[getPaiIcon(pai)]),
+		},
+	}, r({
+		sink: SinkText,
+		source: SourceText,
+		client: ClientText,
+		module: ModuleText,
+	}[dgo.type] || ModuleText, {
+		dgo,
+		pai,
+		state,
+		selected,
+	})));
+};
 
 const renderEdge = props => r(Edge, {
 	classSet: {
@@ -529,6 +546,7 @@ class Graph extends React.Component {
 		let edges = map(paoToEdge, flatten(map(values, [
 			this.props.objects.sinkInputs,
 			this.props.objects.sourceOutputs,
+			this.props.derivations.monitorSources,
 		])));
 
 		const connectedNodeKeys = new Set();
@@ -581,6 +599,9 @@ class Graph extends React.Component {
 		]))));
 
 		edges = filter(edge => {
+			if (this.props.preferences.hideMonitorSourceEdges && edge.type === 'monitorSource') {
+				return false;
+			}
 			return filteredNodeKeys.has(edge.source) && filteredNodeKeys.has(edge.target);
 		}, edges);
 
@@ -640,6 +661,10 @@ module.exports = connect(
 	state => ({
 		objects: state.pulse.objects,
 		infos: state.pulse.infos,
+
+		derivations: {
+			monitorSources: getDerivedMonitorSources(state),
+		},
 
 		icons: state.icons,
 

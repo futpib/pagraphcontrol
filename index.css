@@ -130,6 +130,14 @@ div {
 	marker-end: url(#my-sink-arrow-selected);
 }
 
+.view-wrapper .monitorSource {
+	stroke-dasharray: 40;
+	pointer-events: none;
+}
+.view-wrapper .monitorSource .edge-mouse-handler {
+	pointer-events: none;
+}
+
 #edge-custom-container .edge-path {
 	marker-end: none;
 	stroke: var(--themeSelectedBgColor);

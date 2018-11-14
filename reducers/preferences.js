@@ -13,6 +13,7 @@ const initialState = {
 	hideDisconnectedSources: false,
 	hideDisconnectedSinks: false,
 
+	hideMonitorSourceEdges: false,
 	hideMonitors: false,
 	hidePulseaudioApps: true,
 
