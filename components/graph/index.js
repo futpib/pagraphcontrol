@@ -524,10 +524,18 @@ class Graph extends React.Component {
 	}
 
 	onDeleteNode(selected) {
+		const pai = dgoToPai.get(selected);
+
 		if (selected.type === 'client') {
 			this.props.killClientByIndex(selected.index);
 		} else if (selected.type === 'module') {
 			this.props.unloadModuleByIndex(selected.index);
+		} else if (
+			(selected.type === 'sink' || selected.type === 'source') &&
+				pai &&
+				typeof pai.moduleIndex === 'number'
+		) {
+			this.props.unloadModuleByIndex(pai.moduleIndex);
 		}
 	}
 
