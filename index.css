@@ -227,9 +227,6 @@ div {
 	stroke-width: 2px;
 	stroke: var(--borders);
 }
-.node.selected .volume-thumbnail-ruler-line {
-	stroke: var(--themeSelectedFgColor)
-}
 .volume-thumbnail-volume-line {
 	stroke-width: 2px;
 	stroke: var(--successColor);
@@ -261,7 +258,7 @@ div {
 	margin-left: -50%;
 }
 
-.volume-controls:hover {
+.node.selected .volume-controls {
 	border-color: var(--themeSelectedBgColor);
 }
 
