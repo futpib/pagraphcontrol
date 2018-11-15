@@ -99,6 +99,10 @@ module.exports = store => {
 			reconnect();
 		})
 		.on('new', (type, index) => {
+			if (type === 'server') {
+				pa.end(); // Reconnect
+				return;
+			}
 			store.dispatch(pulseActions.new({ type, index }));
 			getInfo(type, index);
 		})
