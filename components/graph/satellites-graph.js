@@ -21,10 +21,16 @@ const {
 
 const originalEdgeToSatelliteNode = edge => ({
 	id: `${edge.target}__satellite__${edge.id}`,
-	edge: edge.id,
-	source: edge.source,
-	target: edge.target,
 	type: 'satellite',
+
+	edge: edge.id,
+	edgeType: edge.type,
+
+	source: edge.source,
+	sourceType: edge.source.type,
+
+	target: edge.target,
+	targetType: edge.target.type,
 });
 
 const originalEdgeAndSatelliteNodeToSatelliteEdge = (edge, satelliteNode) => {
@@ -113,9 +119,17 @@ class GraphView extends React.Component {
 	}
 
 	static repositionSatellites(position, satelliteNodes) {
+		const offsetY = (satelliteNodes % 2) ? 0 : (satelliteSpread / 2);
+
 		satelliteNodes.forEach((satelliteNode, i) => {
+			if (satelliteNode.edgeType === 'monitorSource') {
+				satelliteNode.x = position.x;
+				satelliteNode.y = position.y;
+				return;
+			}
 			satelliteNode.x = position.x;
 			satelliteNode.y = position.y +
+				offsetY +
 				(satelliteSpread * plusMinus(i)) +
 				((satelliteSpread / 2) * ((satelliteNodes.length + 1) % 2));
 		});
