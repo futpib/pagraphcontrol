@@ -3,6 +3,7 @@ const {
 	values,
 	map,
 	path,
+	sortBy,
 } = require('ramda');
 
 const r = require('r-dom');
@@ -50,9 +51,14 @@ const Preferences = withStateHandlers(
 		]),
 
 		r(Select, {
-			options: card.profiles,
+			options: sortBy(p => -p.priority, card.profiles),
 			optionValue: p => p.name,
-			optionText: p => p.description,
+			optionText: p => [
+				p.description,
+				!p.available && '(unavailable)',
+			]
+				.filter(Boolean)
+				.join(' '),
 			value: card.activeProfileName,
 			onChange: e => {
 				props.actions.setCardProfile(card.index, e.target.value);
