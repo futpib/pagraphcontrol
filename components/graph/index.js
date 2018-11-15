@@ -8,6 +8,7 @@ const {
 	forEach,
 	merge,
 	repeat,
+	defaultTo,
 } = require('ramda');
 
 const React = require('react');
@@ -219,7 +220,8 @@ const VolumeThumbnail = ({ pai, state }) => {
 	if (state.preferences.hideVolumeThumbnails) {
 		return r(React.Fragment);
 	}
-	const { baseVolume } = pai;
+	const normVolume = PA_VOLUME_NORM;
+	const baseVolume = defaultTo(normVolume, pai && pai.baseVolume);
 
 	const volumes = getVolumesForThumbnail({ pai, state });
 	const muted = !pai || pai.muted;
@@ -246,8 +248,8 @@ const VolumeThumbnail = ({ pai, state }) => {
 
 		baseVolume && r.line({
 			className: 'volume-thumbnail-ruler-line',
-			x1: padding + ((baseVolume / PA_VOLUME_NORM) * width),
-			x2: padding + ((baseVolume / PA_VOLUME_NORM) * width),
+			x1: padding + ((baseVolume / normVolume) * width),
+			x2: padding + ((baseVolume / normVolume) * width),
 			y1: padding,
 			y2: padding + height,
 		}),
@@ -260,13 +262,37 @@ const VolumeThumbnail = ({ pai, state }) => {
 			y2: padding + height,
 		}),
 
-		...volumes.map((v, i) => r.line({
-			className: 'volume-thumbnail-volume-line',
-			x1: padding,
-			x2: padding + ((v / PA_VOLUME_NORM) * width),
-			y1: padding + ((1 + i) * step),
-			y2: padding + ((1 + i) * step),
-		})),
+		...volumes.map((v, i) => {
+			const a = Math.min(v / normVolume, baseVolume / normVolume);
+			const b = Math.min(v / normVolume, 1);
+			const c = v / normVolume;
+
+			return r(React.Fragment, [
+				r.line({
+					className: 'volume-thumbnail-volume-line',
+					x1: padding,
+					x2: padding + (a * width),
+					y1: padding + ((1 + i) * step),
+					y2: padding + ((1 + i) * step),
+				}),
+
+				r.line({
+					className: 'volume-thumbnail-volume-line volume-thumbnail-volume-line-warning',
+					x1: padding + (a * width),
+					x2: padding + (b * width),
+					y1: padding + ((1 + i) * step),
+					y2: padding + ((1 + i) * step),
+				}),
+
+				r.line({
+					className: 'volume-thumbnail-volume-line volume-thumbnail-volume-line-error',
+					x1: padding + (b * width),
+					x2: padding + (c * width),
+					y1: padding + ((1 + i) * step),
+					y2: padding + ((1 + i) * step),
+				}),
+			]);
+		}),
 	]);
 };
 

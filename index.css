@@ -234,8 +234,11 @@ div {
 	stroke-width: 2px;
 	stroke: var(--successColor);
 }
-.node.selected .volume-thumbnail-volume-line {
-	stroke: var(--themeSelectedFgColor)
+.volume-thumbnail-volume-line-warning {
+	stroke: var(--warningColor)
+}
+.volume-thumbnail-volume-line-error {
+	stroke: var(--errorColor)
 }
 
 .volume-thumbnail-muted .volume-thumbnail-volume-line {
