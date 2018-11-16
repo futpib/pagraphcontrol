@@ -6,12 +6,12 @@ const {
 	sortBy,
 } = require('ramda');
 
+const React = require('react');
+
 const r = require('r-dom');
 
 const { connect } = require('react-redux');
 const { bindActionCreators } = require('redux');
-
-const { withStateHandlers } = require('recompose');
 
 const { pulse: pulseActions } = require('../../actions');
 
@@ -19,66 +19,82 @@ const Button = require('../button');
 const Label = require('../label');
 const Select = require('../select');
 
-const Preferences = withStateHandlers(
-	{
-		open: false,
-	},
-	{
-		toggle: ({ open }) => () => ({ open: !open }),
-	},
-)(({ open, toggle, ...props }) => r.div({
-	classSet: {
-		panel: true,
-		cards: true,
-		open,
-	},
-}, open ? [
-	r.div([
-		r(Button, {
-			style: { width: '100%' },
-			autoFocus: true,
-			onClick: toggle,
-		}, 'Close'),
-	]),
+class Cards extends React.Component {
+	constructor(props) {
+		super(props);
 
-	r.hr(),
+		this.state = {
+			open: false,
+		};
+	}
 
-	...map(card => r(Label, {
-		title: card.name,
-	}, [
-		r(Label, [
-			path([ 'properties', 'device', 'description' ], card),
-		]),
+	toggle() {
+		this.setState({ open: !this.state.open });
+	}
 
-		r(Select, {
-			options: sortBy(p => -p.priority, card.profiles),
-			optionValue: p => p.name,
-			optionText: p => [
-				p.description,
-				!p.available && '(unavailable)',
-			]
-				.filter(Boolean)
-				.join(' '),
-			value: card.activeProfileName,
-			onChange: e => {
-				props.actions.setCardProfile(card.index, e.target.value);
+	close() {
+		this.setState({ open: false });
+	}
+
+	render() {
+		const { open } = this.state;
+		const toggle = this.toggle.bind(this);
+
+		return r.div({
+			classSet: {
+				panel: true,
+				cards: true,
+				open,
 			},
-		}),
-	]), values(props.cards)),
+		}, open ? [
+			r.div([
+				r(Button, {
+					style: { width: '100%' },
+					autoFocus: true,
+					onClick: toggle,
+				}, 'Close'),
+			]),
 
-	props.preferences.showDebugInfo && r.pre({
-		style: {
-			fontSize: '0.75em',
-		},
-	}, [
-		JSON.stringify(props, null, 2),
-	]),
-] : [
-	r(Button, {
-		autoFocus: true,
-		onClick: toggle,
-	}, 'Cards'),
-]));
+			r.hr(),
+
+			...map(card => r(Label, {
+				title: card.name,
+			}, [
+				r(Label, [
+					path([ 'properties', 'device', 'description' ], card),
+				]),
+
+				r(Select, {
+					options: sortBy(p => -p.priority, card.profiles),
+					optionValue: p => p.name,
+					optionText: p => [
+						p.description,
+						!p.available && '(unavailable)',
+					]
+						.filter(Boolean)
+						.join(' '),
+					value: card.activeProfileName,
+					onChange: e => {
+						this.props.actions.setCardProfile(card.index, e.target.value);
+					},
+				}),
+			]), values(this.props.cards)),
+
+			this.props.preferences.showDebugInfo && r.pre({
+				style: {
+					fontSize: '0.75em',
+				},
+			}, [
+				JSON.stringify(this.props, null, 2),
+			]),
+		] : [
+			r(Button, {
+				autoFocus: true,
+				onClick: toggle,
+			}, 'Cards'),
+		]);
+	}
+}
 
 module.exports = connect(
 	state => ({
@@ -88,4 +104,6 @@ module.exports = connect(
 	dispatch => ({
 		actions: bindActionCreators(pulseActions, dispatch),
 	}),
-)(Preferences);
+	null,
+	{ withRef: true },
+)(Cards);

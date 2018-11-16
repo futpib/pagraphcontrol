@@ -4,12 +4,12 @@ const {
 	defaultTo,
 } = require('ramda');
 
+const React = require('react');
+
 const r = require('r-dom');
 
 const { connect } = require('react-redux');
 const { bindActionCreators } = require('redux');
-
-const { withStateHandlers } = require('recompose');
 
 const { preferences: preferencesActions } = require('../../actions');
 
@@ -17,135 +17,153 @@ const Button = require('../button');
 const Checkbox = require('../checkbox');
 const NumberInput = require('../number-input');
 
-const Preferences = withStateHandlers(
-	{
-		open: false,
-	},
-	{
-		toggle: ({ open }) => () => ({ open: !open }),
-	},
-)(({ open, toggle, ...props }) => r.div({
-	classSet: {
-		panel: true,
-		preferences: true,
-		open,
-	},
-}, open ? [
-	r.div([
-		r(Button, {
-			style: { width: '100%' },
-			autoFocus: true,
-			onClick: toggle,
-		}, 'Close'),
-	]),
+class Preferences extends React.Component {
+	constructor(props) {
+		super(props);
 
-	r.hr(),
+		this.state = {
+			open: false,
+		};
+	}
 
-	r.div([
-		r(Checkbox, {
-			checked: props.preferences.hideDisconnectedClients,
-			onChange: () => props.actions.toggle('hideDisconnectedClients'),
-		}, 'Hide disconnected clients'),
-	]),
+	toggle() {
+		this.setState({ open: !this.state.open });
+	}
 
-	r.div([
-		r(Checkbox, {
-			checked: props.preferences.hideDisconnectedModules,
-			onChange: () => props.actions.toggle('hideDisconnectedModules'),
-		}, 'Hide disconnected modules'),
-	]),
+	close() {
+		this.setState({ open: false });
+	}
 
-	r.div([
-		r(Checkbox, {
-			checked: props.preferences.hideDisconnectedSource,
-			onChange: () => props.actions.toggle('hideDisconnectedSource'),
-		}, 'Hide disconnected source'),
-	]),
+	render() {
+		const { open } = this.state;
+		const toggle = this.toggle.bind(this);
 
-	r.div([
-		r(Checkbox, {
-			checked: props.preferences.hideDisconnectedSinks,
-			onChange: () => props.actions.toggle('hideDisconnectedSinks'),
-		}, 'Hide disconnected sinks'),
-	]),
-
-	r.hr(),
-
-	r.div([
-		r(Checkbox, {
-			checked: props.preferences.hideMonitorSourceEdges,
-			onChange: () => props.actions.toggle('hideMonitorSourceEdges'),
-		}, 'Hide monitor source edges'),
-	]),
-
-	r.div([
-		r(Checkbox, {
-			checked: props.preferences.hideMonitors,
-			onChange: () => props.actions.toggle('hideMonitors'),
-		}, 'Hide monitors'),
-	]),
-
-	r.div([
-		r(Checkbox, {
-			checked: props.preferences.hidePulseaudioApps,
-			onChange: () => props.actions.toggle('hidePulseaudioApps'),
-		}, 'Hide pulseaudio applications'),
-	]),
-
-	r.hr(),
-
-	r.div([
-		r(Checkbox, {
-			checked: props.preferences.hideVolumeThumbnails,
-			onChange: () => props.actions.toggle('hideVolumeThumbnails'),
-		}, 'Hide volume thumbnails'),
-	]),
-
-	r.div([
-		r(Checkbox, {
-			checked: props.preferences.lockChannelsTogether,
-			onChange: () => props.actions.toggle('lockChannelsTogether'),
-		}, 'Lock channels together'),
-	]),
-
-	r.div([
-		r(NumberInput, {
-			type: 'number',
-			value: defaultTo(150, Math.round(props.preferences.maxVolume * 100)),
-			onChange: e => {
-				const v = defaultTo(150, Math.max(0, parseInt(e.target.value, 10)));
-				props.actions.set({ maxVolume: v / 100 });
+		return r.div({
+			classSet: {
+				panel: true,
+				preferences: true,
+				open,
 			},
-		}, 'Maximum volume: '),
-	]),
+		}, open ? [
+			r.div([
+				r(Button, {
+					style: { width: '100%' },
+					autoFocus: true,
+					onClick: toggle,
+				}, 'Close'),
+			]),
 
-	r.hr(),
+			r.hr(),
 
-	r.div([
-		r(Checkbox, {
-			checked: props.preferences.showDebugInfo,
-			onChange: () => props.actions.toggle('showDebugInfo'),
-		}, 'Show debug info'),
-	]),
+			r.div([
+				r(Checkbox, {
+					checked: this.props.preferences.hideDisconnectedClients,
+					onChange: () => this.props.actions.toggle('hideDisconnectedClients'),
+				}, 'Hide disconnected clients'),
+			]),
 
-	r.hr(),
+			r.div([
+				r(Checkbox, {
+					checked: this.props.preferences.hideDisconnectedModules,
+					onChange: () => this.props.actions.toggle('hideDisconnectedModules'),
+				}, 'Hide disconnected modules'),
+			]),
 
-	r.div([
-		r(Button, {
-			style: { width: '100%' },
-			onClick: props.actions.resetDefaults,
-		}, 'Reset to defaults'),
-	]),
-] : [
-	r(Button, {
-		autoFocus: true,
-		onClick: toggle,
-	}, 'Preferences'),
-]));
+			r.div([
+				r(Checkbox, {
+					checked: this.props.preferences.hideDisconnectedSource,
+					onChange: () => this.props.actions.toggle('hideDisconnectedSource'),
+				}, 'Hide disconnected source'),
+			]),
+
+			r.div([
+				r(Checkbox, {
+					checked: this.props.preferences.hideDisconnectedSinks,
+					onChange: () => this.props.actions.toggle('hideDisconnectedSinks'),
+				}, 'Hide disconnected sinks'),
+			]),
+
+			r.hr(),
+
+			r.div([
+				r(Checkbox, {
+					checked: this.props.preferences.hideMonitorSourceEdges,
+					onChange: () => this.props.actions.toggle('hideMonitorSourceEdges'),
+				}, 'Hide monitor source edges'),
+			]),
+
+			r.div([
+				r(Checkbox, {
+					checked: this.props.preferences.hideMonitors,
+					onChange: () => this.props.actions.toggle('hideMonitors'),
+				}, 'Hide monitors'),
+			]),
+
+			r.div([
+				r(Checkbox, {
+					checked: this.props.preferences.hidePulseaudioApps,
+					onChange: () => this.props.actions.toggle('hidePulseaudioApps'),
+				}, 'Hide pulseaudio applications'),
+			]),
+
+			r.hr(),
+
+			r.div([
+				r(Checkbox, {
+					checked: this.props.preferences.hideVolumeThumbnails,
+					onChange: () => this.props.actions.toggle('hideVolumeThumbnails'),
+				}, 'Hide volume thumbnails'),
+			]),
+
+			r.div([
+				r(Checkbox, {
+					checked: this.props.preferences.lockChannelsTogether,
+					onChange: () => this.props.actions.toggle('lockChannelsTogether'),
+				}, 'Lock channels together'),
+			]),
+
+			r.div([
+				r(NumberInput, {
+					type: 'number',
+					value: defaultTo(150, Math.round(this.props.preferences.maxVolume * 100)),
+					onChange: e => {
+						const v = defaultTo(150, Math.max(0, parseInt(e.target.value, 10)));
+						this.props.actions.set({ maxVolume: v / 100 });
+					},
+				}, 'Maximum volume: '),
+			]),
+
+			r.hr(),
+
+			r.div([
+				r(Checkbox, {
+					checked: this.props.preferences.showDebugInfo,
+					onChange: () => this.props.actions.toggle('showDebugInfo'),
+				}, 'Show debug info'),
+			]),
+
+			r.hr(),
+
+			r.div([
+				r(Button, {
+					style: { width: '100%' },
+					onClick: this.props.actions.resetDefaults,
+				}, 'Reset to defaults'),
+			]),
+		] : [
+			r(Button, {
+				autoFocus: true,
+				onClick: toggle,
+			}, 'Preferences'),
+		]);
+	}
+}
 
 module.exports = connect(
 	state => pick([ 'preferences' ], state),
 	dispatch => ({
 		actions: bindActionCreators(preferencesActions, dispatch),
 	}),
+	null,
+	{ withRef: true },
 )(Preferences);

@@ -70,7 +70,7 @@ class GraphView extends React.Component {
 			selected: null,
 		};
 
-		this.graph = React.createRef();
+		this.graphViewRef = this.props.graphViewRef || React.createRef();
 
 		Object.assign(this, {
 			onSwapEdge: this.onSwapEdge.bind(this),
@@ -144,7 +144,7 @@ class GraphView extends React.Component {
 		const createdEdgeId = `edge-${sourceNode[nodeKey]}-${targetNode[nodeKey]}-container`;
 		const createdEdge = document.getElementById(createdEdgeId);
 		createdEdge.remove();
-		this.graph.current.forceUpdate();
+		this.graphViewRef.current.forceUpdate();
 	}
 
 	onNodeMove(position, nodeId, shiftKey) {
@@ -153,7 +153,7 @@ class GraphView extends React.Component {
 		if (satelliteNodes) {
 			this.constructor.repositionSatellites(position, satelliteNodes);
 			satelliteNodes.forEach(satelliteNode => {
-				this.graph.current.handleNodeMove(satelliteNode, satelliteNode[nodeKey], shiftKey);
+				this.graphViewRef.current.handleNodeMove(satelliteNode, satelliteNode[nodeKey], shiftKey);
 			});
 		}
 	}
@@ -220,7 +220,7 @@ class GraphView extends React.Component {
 
 			selected,
 
-			ref: this.graph,
+			ref: this.graphViewRef,
 
 			nodes,
 			edges,

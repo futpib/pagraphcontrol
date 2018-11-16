@@ -1,16 +1,23 @@
+/* global document */
 
 const {
-	map,
-	values,
-	flatten,
-	path,
-	filter,
-	forEach,
-	merge,
-	repeat,
-	defaultTo,
-	prop,
 	all,
+	bind,
+	compose,
+	defaultTo,
+	filter,
+	find,
+	flatten,
+	forEach,
+	keys,
+	map,
+	merge,
+	path,
+	pick,
+	prop,
+	repeat,
+	sortBy,
+	values,
 } = require('ramda');
 
 const React = require('react');
@@ -19,6 +26,8 @@ const r = require('r-dom');
 
 const { connect } = require('react-redux');
 const { bindActionCreators } = require('redux');
+
+const { HotKeys } = require('react-hotkeys');
 
 const d = require('../../utils/d');
 const memoize = require('../../utils/memoize');
@@ -43,6 +52,8 @@ const { size } = require('../../constants/view');
 
 const VolumeSlider = require('../../components/volume-slider');
 
+const { keyMap } = require('../hot-keys');
+
 const {
 	GraphView,
 } = require('./satellites-graph');
@@ -52,6 +63,49 @@ const {
 } = require('./base');
 
 const LayoutEngine = require('./layout-engine');
+
+const leftOf = (x, xs) => {
+	const i = ((xs.indexOf(x) + xs.length - 1) % xs.length);
+	return xs[i];
+};
+
+const rightOf = (x, xs) => {
+	const i = ((xs.indexOf(x) + 1) % xs.length);
+	return xs[i];
+};
+
+const selectionObjectTypes = {
+	order: [
+		'source',
+		'sourceOutput',
+		'client|module',
+		'sinkInput',
+		'sink',
+	],
+
+	left(type) {
+		return leftOf(type, this.order);
+	},
+
+	right(type) {
+		return rightOf(type, this.order);
+	},
+
+	fromPulseType(type) {
+		if (type === 'client' || type === 'module') {
+			return 'client|module';
+		}
+		return type;
+	},
+
+	toPulsePredicate(type) {
+		type = this.fromPulseType(type);
+		if (type === 'client|module') {
+			return o => (o.type === 'client' || o.type === 'module');
+		}
+		return o => o.type === type;
+	},
+};
 
 const dgoToPai = new WeakMap();
 
@@ -96,14 +150,6 @@ const getPaiIcon = memoize(pai => {
 		path([ 'properties', 'application', 'icon_name' ], pai) ||
 		path([ 'properties', 'device', 'icon_name' ], pai);
 });
-
-const graphConfig = {
-	nodeTypes: {},
-
-	nodeSubtypes: {},
-
-	edgeTypes: {},
-};
 
 const s2 = size / 2;
 
@@ -485,6 +531,82 @@ class Graph extends React.Component {
 		});
 	}
 
+	static getDerivedStateFromProps(props) {
+		let edges = map(paoToEdge, flatten(map(values, [
+			props.objects.sinkInputs,
+			props.objects.sourceOutputs,
+			props.derivations.monitorSources,
+		])));
+
+		const connectedNodeKeys = new Set();
+		edges.forEach(edge => {
+			connectedNodeKeys.add(edge.source);
+			connectedNodeKeys.add(edge.target);
+		});
+
+		const filteredNodeKeys = new Set();
+
+		const nodes = filter(node => {
+			if ((props.preferences.hideDisconnectedClients && node.type === 'client') ||
+				(props.preferences.hideDisconnectedModules && node.type === 'module') ||
+				(props.preferences.hideDisconnectedSources && node.type === 'source') ||
+				(props.preferences.hideDisconnectedSinks && node.type === 'sink')
+			) {
+				if (!connectedNodeKeys.has(node.id)) {
+					return false;
+				}
+			}
+
+			const pai = dgoToPai.get(node);
+			if (pai) {
+				if (props.preferences.hideMonitors &&
+					pai.properties.device &&
+					pai.properties.device.class === 'monitor'
+				) {
+					return false;
+				}
+
+				if (props.preferences.hidePulseaudioApps) {
+					const binary = path([ 'properties', 'application', 'process', 'binary' ], pai) || '';
+					const name = path([ 'properties', 'application', 'name' ], pai) || '';
+					if (binary.startsWith('pavucontrol') ||
+						binary.startsWith('kmix') ||
+						name === 'paclient.js'
+					) {
+						return false;
+					}
+				}
+			}
+
+			filteredNodeKeys.add(node.id);
+			return true;
+		}, map(paoToNode, flatten(map(values, [
+			props.objects.sinks,
+			props.objects.sources,
+			props.objects.clients,
+			props.objects.modules,
+		]))));
+
+		edges = filter(edge => {
+			if (props.preferences.hideMonitorSourceEdges && edge.type === 'monitorSource') {
+				return false;
+			}
+			return filteredNodeKeys.has(edge.source) && filteredNodeKeys.has(edge.target);
+		}, edges);
+
+		nodes.forEach(node => {
+			const pai = getPaiByTypeAndIndex(node.type, node.index)({ pulse: props });
+			dgoToPai.set(node, pai);
+		});
+
+		edges.forEach(edge => {
+			const pai = getPaiByTypeAndIndex(edge.type, edge.index)({ pulse: props });
+			dgoToPai.set(edge, pai);
+		});
+
+		return { nodes, edges };
+	}
+
 	shouldComponentUpdate(nextProps, nextState) {
 		return !(
 			(nextProps.objects === this.props.objects) &&
@@ -497,6 +619,9 @@ class Graph extends React.Component {
 
 	componentDidMount() {
 		this.getIconPath('audio-volume-muted');
+
+		this.graphViewElement = document.querySelector('#graph .view-wrapper');
+		this.graphViewElement.setAttribute('tabindex', '-1');
 	}
 
 	componentDidUpdate() {
@@ -550,15 +675,11 @@ class Graph extends React.Component {
 		const pai = dgoToPai.get(data);
 		if (pai && event.button === 1) {
 			if (pai.type === 'sink' ||
-				pai.type === 'source'
+				pai.type === 'source' ||
+				pai.type === 'client' ||
+				pai.type === 'module'
 			) {
 				this.toggleMute(pai);
-			} else if (pai.type === 'client') {
-				const sinkInputs = getClientSinkInputs(pai)({ pulse: this.props });
-				this.toggleAllMute(sinkInputs);
-			} else if (pai.type === 'module') {
-				const sinkInputs = getModuleSinkInputs(pai)({ pulse: this.props });
-				this.toggleAllMute(sinkInputs);
 			}
 		}
 	}
@@ -616,85 +737,118 @@ class Graph extends React.Component {
 			this.props.setSinkMute(pai.index, muted);
 		} else if (pai.type === 'source') {
 			this.props.setSourceMute(pai.index, muted);
+		} else if (pai.type === 'client') {
+			const sinkInputs = getClientSinkInputs(pai)({ pulse: this.props });
+			this.toggleAllMute(sinkInputs);
+		} else if (pai.type === 'module') {
+			const sinkInputs = getModuleSinkInputs(pai)({ pulse: this.props });
+			this.toggleAllMute(sinkInputs);
 		}
 	}
 
+	focus() {
+		this.graphViewElement.focus();
+	}
+
+	deselect() {
+		this.setState({ selected: null });
+	}
+
+	hotKeyMute() {
+		if (!this.state.selected) {
+			return;
+		}
+
+		const pai = dgoToPai.get(this.state.selected);
+
+		if (!pai) {
+			return;
+		}
+
+		this.toggleMute(pai);
+	}
+
+	_findNextObjectForSelection(object, direction) {
+		const { type } = object || { type: 'client' };
+		const predicate = selectionObjectTypes.toPulsePredicate(type);
+		const candidates = compose(
+			sortBy(prop('index')),
+			filter(predicate),
+		)(this.state.nodes.concat(this.state.edges));
+		return (direction === 'up' ? leftOf : rightOf)(object, candidates);
+	}
+
+	hotKeyFocusDown() {
+		const selected = this._findNextObjectForSelection(this.state.selected, 'down');
+		this.setState({ selected });
+	}
+
+	hotKeyFocusUp() {
+		const selected = this._findNextObjectForSelection(this.state.selected, 'up');
+		this.setState({ selected });
+	}
+
+	_findAnyObjectForSelection(types) {
+		let node = null;
+		for (const type of types) {
+			const predicate = selectionObjectTypes.toPulsePredicate(type);
+			node = find(predicate, this.state.nodes) || find(predicate, this.state.edges);
+			if (node) {
+				break;
+			}
+		}
+		return node;
+	}
+
+	_focusHorizontal(direction) {
+		if (!this.state.selected) {
+			this.setState({
+				selected: this._findAnyObjectForSelection(direction === 'left' ? [
+					'sourceOutput',
+					'source',
+				] : [
+					'sinkInput',
+					'sink',
+				]),
+			});
+			return;
+		}
+
+		const type0 = this.state.selected.type;
+		const type1 = selectionObjectTypes[direction](
+			selectionObjectTypes.fromPulseType(type0),
+		);
+		const type2 = selectionObjectTypes[direction](type1);
+
+		this.setState({
+			selected: this._findAnyObjectForSelection([
+				type1,
+				type2,
+			]),
+		});
+	}
+
+	hotKeyFocusLeft() {
+		this._focusHorizontal('left');
+	}
+
+	hotKeyFocusRight() {
+		this._focusHorizontal('right');
+	}
+
+	hotKeyVolumeDown() {
+	}
+
+	hotKeyVolumeUp() {
+	}
+
 	render() {
-		let edges = map(paoToEdge, flatten(map(values, [
-			this.props.objects.sinkInputs,
-			this.props.objects.sourceOutputs,
-			this.props.derivations.monitorSources,
-		])));
+		const { nodes, edges } = this.state;
 
-		const connectedNodeKeys = new Set();
-		edges.forEach(edge => {
-			connectedNodeKeys.add(edge.source);
-			connectedNodeKeys.add(edge.target);
-		});
-
-		const filteredNodeKeys = new Set();
-
-		const nodes = filter(node => {
-			if ((this.props.preferences.hideDisconnectedClients && node.type === 'client') ||
-				(this.props.preferences.hideDisconnectedModules && node.type === 'module') ||
-				(this.props.preferences.hideDisconnectedSources && node.type === 'source') ||
-				(this.props.preferences.hideDisconnectedSinks && node.type === 'sink')
-			) {
-				if (!connectedNodeKeys.has(node.id)) {
-					return false;
-				}
-			}
-
-			const pai = dgoToPai.get(node);
-			if (pai) {
-				if (this.props.preferences.hideMonitors &&
-					pai.properties.device &&
-					pai.properties.device.class === 'monitor'
-				) {
-					return false;
-				}
-
-				if (this.props.preferences.hidePulseaudioApps) {
-					const binary = path([ 'properties', 'application', 'process', 'binary' ], pai) || '';
-					const name = path([ 'properties', 'application', 'name' ], pai) || '';
-					if (binary.startsWith('pavucontrol') ||
-						binary.startsWith('kmix') ||
-						name === 'paclient.js'
-					) {
-						return false;
-					}
-				}
-			}
-
-			filteredNodeKeys.add(node.id);
-			return true;
-		}, map(paoToNode, flatten(map(values, [
-			this.props.objects.sinks,
-			this.props.objects.sources,
-			this.props.objects.clients,
-			this.props.objects.modules,
-		]))));
-
-		edges = filter(edge => {
-			if (this.props.preferences.hideMonitorSourceEdges && edge.type === 'monitorSource') {
-				return false;
-			}
-			return filteredNodeKeys.has(edge.source) && filteredNodeKeys.has(edge.target);
-		}, edges);
-
-		nodes.forEach(node => {
-			const pai = getPaiByTypeAndIndex(node.type, node.index)({ pulse: this.props });
-			dgoToPai.set(node, pai);
-		});
-
-		edges.forEach(edge => {
-			const pai = getPaiByTypeAndIndex(edge.type, edge.index)({ pulse: this.props });
-			dgoToPai.set(edge, pai);
-		});
-
-		return r.div({
+		return r(HotKeys, {
+			handlers: map(f => bind(f, this), pick(keys(keyMap), this)),
+		}, r.div({
 			id: 'graph',
-			style: {},
 		}, r(GraphView, {
 			nodeKey: 'id',
 			edgeKey: 'id',
@@ -704,7 +858,9 @@ class Graph extends React.Component {
 
 			selected: this.state.selected,
 
-			...graphConfig,
+			nodeTypes: {},
+			nodeSubtypes: {},
+			edgeTypes: {},
 
 			onSelectNode: this.onSelectNode,
 			onCreateNode: this.onCreateNode,
@@ -733,7 +889,7 @@ class Graph extends React.Component {
 
 			renderEdge,
 			renderEdgeText: renderEdgeText(this.props),
-		}));
+		})));
 	}
 }
 
@@ -751,4 +907,6 @@ module.exports = connect(
 		preferences: state.preferences,
 	}),
 	dispatch => bindActionCreators(merge(pulseActions, iconsActions), dispatch),
+	null,
+	{ withRef: true },
 )(Graph);

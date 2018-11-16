@@ -9,6 +9,10 @@ div {
 	box-sizing: border-box;
 }
 
+div[tabindex="-1"]:focus {
+	outline: 0;
+}
+
 .button {
 	background: var(--themeBgColor);
 	color: var(--themeTextColor);
