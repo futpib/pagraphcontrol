@@ -77,6 +77,7 @@ class GraphView extends React.Component {
 			onNodeMove: this.onNodeMove.bind(this),
 
 			onSelectEdge: this.onSelectEdge.bind(this),
+			onEdgeMouseDown: this.onEdgeMouseDown.bind(this),
 
 			renderNode: this.renderNode.bind(this),
 			renderNodeText: this.renderNodeText.bind(this),
@@ -159,7 +160,16 @@ class GraphView extends React.Component {
 
 	onSelectEdge(edge) {
 		const originalEdge = satelliteEdgeToOriginalEdge.get(edge);
-		this.props.onSelectEdge(originalEdge);
+		if (this.props.onSelectEdge) {
+			this.props.onSelectEdge(originalEdge || edge);
+		}
+	}
+
+	onEdgeMouseDown(event, edge) {
+		const originalEdge = satelliteEdgeToOriginalEdge.get(edge);
+		if (this.props.onEdgeMouseDown) {
+			this.props.onEdgeMouseDown(event, originalEdge || edge);
+		}
 	}
 
 	renderNode(nodeRef, dgo, key, selected, hovered) {
@@ -219,6 +229,8 @@ class GraphView extends React.Component {
 			onNodeMove: this.onNodeMove,
 
 			onSelectEdge: this.onSelectEdge,
+
+			onEdgeMouseDown: this.onEdgeMouseDown,
 
 			renderNode: this.renderNode,
 			renderNodeText: this.renderNodeText,

@@ -15,6 +15,8 @@ const {
 
 const math = require('mathjs');
 
+const d3 = require('d3');
+
 const { size } = require('../../constants/view');
 
 class GraphView extends GraphViewBase {
@@ -88,6 +90,7 @@ class GraphView extends GraphViewBase {
 			nodeSize,
 			nodeKey,
 			nodeSubtypes,
+			onNodeMouseDown: this.props.onNodeMouseDown,
 			onNodeMouseEnter: this.handleNodeMouseEnter,
 			onNodeMouseLeave: this.handleNodeMouseLeave,
 			onNodeMove: this.handleNodeMove,
@@ -150,6 +153,7 @@ class GraphView extends GraphViewBase {
 			isSelected: selected,
 			nodeMoving,
 			renderEdgeText,
+			onEdgeMouseDown: this.props.onEdgeMouseDown,
 		});
 	}
 
@@ -181,7 +185,31 @@ class Node extends NodeBase {
 		Object.assign(this, {
 			_super_handleDragEnd: this.handleDragEnd,
 			handleDragEnd: this.constructor.prototype.handleDragEnd.bind(this),
+
+			handleMouseDown: this.constructor.prototype.handleMouseDown.bind(this),
 		});
+	}
+
+	componentDidMount() {
+		d3
+			.select(this.nodeRef.current)
+			.on('mousedown', this.handleMouseDown);
+
+		super.componentDidMount();
+	}
+
+	componentWillUnmount() {
+		d3
+			.select(this.nodeRef.current)
+			.on('mousedown', null);
+
+		super.componentWillUnmount();
+	}
+
+	handleMouseDown() {
+		if (this.props.onNodeMouseDown) {
+			this.props.onNodeMouseDown(d3.event, this.props.data);
+		}
 	}
 
 	handleDragEnd(...args) {
@@ -202,6 +230,32 @@ EdgeBase.calculateOffset = function (nodeSize, source, target) {
 };
 
 class Edge extends EdgeBase {
+	constructor(props) {
+		super(props);
+
+		Object.assign(this, {
+			handleMouseDown: this.constructor.prototype.handleMouseDown.bind(this),
+		});
+	}
+
+	componentDidMount() {
+		d3
+			.select(this.edgeOverlayRef.current)
+			.on('mousedown', this.handleMouseDown);
+	}
+
+	componentWillUnmount() {
+		d3
+			.select(this.edgeOverlayRef.current)
+			.on('mousedown', null);
+	}
+
+	handleMouseDown() {
+		if (this.props.onEdgeMouseDown) {
+			this.props.onEdgeMouseDown(d3.event, this.props.data);
+		}
+	}
+
 	render() {
 		const { data } = this.props;
 		const id = `${data.source || ''}_${data.target}`;

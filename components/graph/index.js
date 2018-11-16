@@ -471,10 +471,13 @@ class Graph extends React.Component {
 			onCreateNode: this.onCreateNode.bind(this),
 			onUpdateNode: this.onUpdateNode.bind(this),
 			onDeleteNode: this.onDeleteNode.bind(this),
+			onNodeMouseDown: this.onNodeMouseDown.bind(this),
+
 			onSelectEdge: this.onSelectEdge.bind(this),
 			onCreateEdge: this.onCreateEdge.bind(this),
 			onSwapEdge: this.onSwapEdge.bind(this),
 			onDeleteEdge: this.onDeleteEdge.bind(this),
+			onEdgeMouseDown: this.onEdgeMouseDown.bind(this),
 		});
 	}
 
@@ -539,6 +542,17 @@ class Graph extends React.Component {
 		}
 	}
 
+	onNodeMouseDown(event, data) {
+		const pai = dgoToPai.get(data);
+		if (pai && event.button === 1) {
+			if (pai.type === 'sink') {
+				this.props.setSinkMute(pai.index, !pai.muted);
+			} else if (pai.type === 'source') {
+				this.props.setSourceMute(pai.index, !pai.muted);
+			}
+		}
+	}
+
 	onSelectEdge(selected) {
 		this.setState({ selected });
 	}
@@ -559,6 +573,17 @@ class Graph extends React.Component {
 			this.props.killSinkInputByIndex(selected.index);
 		} else if (selected.type === 'sourceOutput') {
 			this.props.killSourceOutputByIndex(selected.index);
+		}
+	}
+
+	onEdgeMouseDown(event, data) {
+		const pai = dgoToPai.get(data);
+		if (pai && event.button === 1) {
+			if (pai.type === 'sinkInput') {
+				this.props.setSinkInputMuteByIndex(pai.index, !pai.muted);
+			} else if (pai.type === 'sourceOutput') {
+				this.props.setSourceOutputMuteByIndex(pai.index, !pai.muted);
+			}
 		}
 	}
 
@@ -653,10 +678,13 @@ class Graph extends React.Component {
 			onCreateNode: this.onCreateNode,
 			onUpdateNode: this.onUpdateNode,
 			onDeleteNode: this.onDeleteNode,
+			onNodeMouseDown: this.onNodeMouseDown,
+
 			onSelectEdge: this.onSelectEdge,
 			onCreateEdge: this.onCreateEdge,
 			onSwapEdge: this.onSwapEdge,
 			onDeleteEdge: this.onDeleteEdge,
+			onEdgeMouseDown: this.onEdgeMouseDown,
 
 			showGraphControls: false,
 

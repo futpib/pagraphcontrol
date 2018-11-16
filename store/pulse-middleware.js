@@ -203,6 +203,23 @@ module.exports = store => {
 			pa.setCardProfile(index, profileName, rethrow);
 			return state;
 		},
+
+		[pulseActions.setSinkMute]: (state, { payload: { index, muted } }) => {
+			pa.setSinkMute(index, muted, rethrow);
+			return state;
+		},
+		[pulseActions.setSourceMute]: (state, { payload: { index, muted } }) => {
+			pa.setSourceMute(index, muted, rethrow);
+			return state;
+		},
+		[pulseActions.setSinkInputMuteByIndex]: (state, { payload: { index, muted } }) => {
+			pa.setSinkInputMuteByIndex(index, muted, rethrow);
+			return state;
+		},
+		[pulseActions.setSourceOutputMuteByIndex]: (state, { payload: { index, muted } }) => {
+			pa.setSourceOutputMuteByIndex(index, muted, rethrow);
+			return state;
+		},
 	}, null);
 
 	return next => action => {
