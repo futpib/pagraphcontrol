@@ -146,7 +146,7 @@ module.exports = class VolumeSlider extends React.Component {
 				y2: height / 2,
 			}),
 
-			r.line({
+			!muted && r.line({
 				className: 'volume-slider-fill',
 				x1: height / 2,
 				x2: x,
