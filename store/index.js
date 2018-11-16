@@ -37,7 +37,7 @@ module.exports = (state = initialState) => {
 		state,
 		composeWithDevTools({
 			realtime: dev,
-			hostname: 'localhost', port: 8000,
+			// hostname: 'localhost', port: 8000,
 		})(applyMiddleware(...middlewares)),
 	);
 

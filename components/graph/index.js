@@ -9,6 +9,8 @@ const {
 	merge,
 	repeat,
 	defaultTo,
+	prop,
+	all,
 } = require('ramda');
 
 const React = require('react');
@@ -29,6 +31,8 @@ const {
 const {
 	getPaiByTypeAndIndex,
 	getDerivedMonitorSources,
+	getClientSinkInputs,
+	getModuleSinkInputs,
 } = require('../../selectors');
 
 const {
@@ -545,10 +549,16 @@ class Graph extends React.Component {
 	onNodeMouseDown(event, data) {
 		const pai = dgoToPai.get(data);
 		if (pai && event.button === 1) {
-			if (pai.type === 'sink') {
-				this.props.setSinkMute(pai.index, !pai.muted);
-			} else if (pai.type === 'source') {
-				this.props.setSourceMute(pai.index, !pai.muted);
+			if (pai.type === 'sink' ||
+				pai.type === 'source'
+			) {
+				this.toggleMute(pai);
+			} else if (pai.type === 'client') {
+				const sinkInputs = getClientSinkInputs(pai)({ pulse: this.props });
+				this.toggleAllMute(sinkInputs);
+			} else if (pai.type === 'module') {
+				const sinkInputs = getModuleSinkInputs(pai)({ pulse: this.props });
+				this.toggleAllMute(sinkInputs);
 			}
 		}
 	}
@@ -579,11 +589,33 @@ class Graph extends React.Component {
 	onEdgeMouseDown(event, data) {
 		const pai = dgoToPai.get(data);
 		if (pai && event.button === 1) {
-			if (pai.type === 'sinkInput') {
-				this.props.setSinkInputMuteByIndex(pai.index, !pai.muted);
-			} else if (pai.type === 'sourceOutput') {
-				this.props.setSourceOutputMuteByIndex(pai.index, !pai.muted);
+			if (pai.type === 'sinkInput' ||
+				pai.type === 'sourceOutput'
+			) {
+				this.toggleMute(pai);
 			}
+		}
+	}
+
+	toggleAllMute(pais) {
+		pais = values(pais);
+		const allMuted = all(prop('muted'), pais);
+		pais.forEach(pai => this.toggleMute(pai, !allMuted));
+	}
+
+	toggleMute(pai, muted = !pai.muted) {
+		if (pai.muted === muted) {
+			return;
+		}
+
+		if (pai.type === 'sinkInput') {
+			this.props.setSinkInputMuteByIndex(pai.index, muted);
+		} else if (pai.type === 'sourceOutput') {
+			this.props.setSourceOutputMuteByIndex(pai.index, muted);
+		} else if (pai.type === 'sink') {
+			this.props.setSinkMute(pai.index, muted);
+		} else if (pai.type === 'source') {
+			this.props.setSourceMute(pai.index, muted);
 		}
 	}
 
