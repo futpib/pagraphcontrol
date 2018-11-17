@@ -2,6 +2,7 @@
 
 const {
 	all,
+	allPass,
 	bind,
 	compose,
 	defaultTo,
@@ -843,11 +844,15 @@ class Graph extends React.Component {
 		this.setState({ selected });
 	}
 
-	_findAnyObjectForSelection(types) {
+	_findAnyObjectForSelection(types, isBest) {
 		let node = null;
 		for (const type of types) {
 			const predicate = selectionObjectTypes.toPulsePredicate(type);
-			node = find(predicate, this.state.nodes) || find(predicate, this.state.edges);
+			node =
+				(isBest && find(allPass([ predicate, isBest ]), this.state.nodes)) ||
+				(isBest && find(allPass([ predicate, isBest ]), this.state.edges)) ||
+				find(predicate, this.state.nodes) ||
+				find(predicate, this.state.edges);
 			if (node) {
 				break;
 			}
@@ -856,7 +861,9 @@ class Graph extends React.Component {
 	}
 
 	_focusHorizontal(direction) {
-		if (!this.state.selected) {
+		const { selected } = this.state;
+
+		if (!selected) {
 			this.setState({
 				selected: this._findAnyObjectForSelection(direction === 'left' ? [
 					'sourceOutput',
@@ -869,17 +876,23 @@ class Graph extends React.Component {
 			return;
 		}
 
-		const type0 = this.state.selected.type;
+		const type0 = selected.type;
 		const type1 = selectionObjectTypes[direction](
 			selectionObjectTypes.fromPulseType(type0),
 		);
 		const type2 = selectionObjectTypes[direction](type1);
 
+		const bestSelectionPredicate = x => null ||
+			x.source === selected.id ||
+			x.target === selected.id ||
+			selected.source === x.id ||
+			selected.target === x.id;
+
 		this.setState({
 			selected: this._findAnyObjectForSelection([
 				type1,
 				type2,
-			]),
+			], bestSelectionPredicate),
 		});
 	}
 
