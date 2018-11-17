@@ -108,6 +108,9 @@ div[tabindex="-1"]:focus {
 .view-wrapper .edge-container:hover .edge {
 	stroke: var(--themeSelectedBgColor);
 }
+.view-wrapper .edge-container:hover .volume-thumbnail-ruler-line {
+	stroke: var(--themeSelectedBgColor);
+}
 
 .view-wrapper .graph .edge.selected {
 	stroke: var(--themeSelectedBgColor);
