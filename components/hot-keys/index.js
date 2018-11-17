@@ -74,7 +74,6 @@ class MyHotKeys extends React.Component {
 
 	hotKeyEscape() {
 		this.hotKeyFocusGraph();
-		this.graphRef.current.getWrappedInstance().hotKeyEscape();
 	}
 
 	render() {

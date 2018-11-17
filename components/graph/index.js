@@ -546,7 +546,7 @@ class Graph extends React.Component {
 		});
 	}
 
-	static getDerivedStateFromProps(props) {
+	static getDerivedStateFromProps(props, state) {
 		let edges = map(paoToEdge, flatten(map(values, [
 			props.objects.sinkInputs,
 			props.objects.sourceOutputs,
@@ -619,7 +619,25 @@ class Graph extends React.Component {
 			dgoToPai.set(edge, pai);
 		});
 
-		return { nodes, edges };
+		let { selected, moved } = state;
+
+		if (selected) {
+			selected = find(x => x.id === selected.id, nodes) ||
+				find(x => x.id === selected.id, edges);
+		}
+
+		if (moved) {
+			moved = find(x => x.id === moved.id, nodes) ||
+				find(x => x.id === moved.id, edges);
+		}
+
+		return {
+			nodes,
+			edges,
+
+			selected,
+			moved,
+		};
 	}
 
 	shouldComponentUpdate(nextProps, nextState) {
@@ -786,6 +804,7 @@ class Graph extends React.Component {
 
 		if (moved) {
 			this.setState({
+				selected: moved,
 				moved: null,
 			});
 			return;
