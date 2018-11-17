@@ -28,6 +28,7 @@ const keyMap = {
 	hotKeyVolumeUp: [ '*', '0' ],
 
 	hotKeyMute: 'm',
+	hotKeyShiftMute: 'M',
 };
 
 class MyHotKeys extends React.Component {

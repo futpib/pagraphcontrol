@@ -26,6 +26,21 @@ const getModuleSinkInputs = module => state => pickBy(
 	state.pulse.infos.sinkInputs,
 );
 
+const getClientSourceOutputs = client => state => pickBy(
+	so => so.clientIndex === client.index,
+	state.pulse.infos.sourceOutputs,
+);
+
+const getModuleSourceOutputs = module => state => pickBy(
+	so => so.moduleIndex === module.index,
+	state.pulse.infos.sourceOutputs,
+);
+
+const getSinkSinkInputs = sink => state => pickBy(
+	si => si.sinkIndex === sink.index,
+	state.pulse.infos.sinkInputs,
+);
+
 const getDerivedMonitorSources = createSelector(
 	state => state.pulse.infos.sources,
 	sources => map(source => ({
@@ -39,6 +54,12 @@ const getDerivedMonitorSources = createSelector(
 module.exports = {
 	getPaiByTypeAndIndex,
 	getDerivedMonitorSources,
+
 	getClientSinkInputs,
 	getModuleSinkInputs,
+
+	getClientSourceOutputs,
+	getModuleSourceOutputs,
+
+	getSinkSinkInputs,
 };

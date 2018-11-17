@@ -44,8 +44,14 @@ const {
 const {
 	getPaiByTypeAndIndex,
 	getDerivedMonitorSources,
+
 	getClientSinkInputs,
 	getModuleSinkInputs,
+
+	getClientSourceOutputs,
+	getModuleSourceOutputs,
+
+	getSinkSinkInputs,
 } = require('../../selectors');
 
 const {
@@ -732,7 +738,7 @@ class Graph extends React.Component {
 		pais.forEach(pai => this.toggleMute(pai, !allMuted));
 	}
 
-	toggleMute(pai, muted = !pai.muted) {
+	toggleMute(pai, muted = !pai.muted, shift = false) {
 		if (pai.muted === muted) {
 			return;
 		}
@@ -742,15 +748,30 @@ class Graph extends React.Component {
 		} else if (pai.type === 'sourceOutput') {
 			this.props.setSourceOutputMuteByIndex(pai.index, muted);
 		} else if (pai.type === 'sink') {
-			this.props.setSinkMute(pai.index, muted);
+			if (shift) {
+				const sinkInputs = getSinkSinkInputs(pai)({ pulse: this.props });
+				this.toggleAllMute(sinkInputs);
+			} else {
+				this.props.setSinkMute(pai.index, muted);
+			}
 		} else if (pai.type === 'source') {
 			this.props.setSourceMute(pai.index, muted);
 		} else if (pai.type === 'client') {
-			const sinkInputs = getClientSinkInputs(pai)({ pulse: this.props });
-			this.toggleAllMute(sinkInputs);
+			if (shift) {
+				const sourceOutputs = getClientSourceOutputs(pai)({ pulse: this.props });
+				this.toggleAllMute(sourceOutputs);
+			} else {
+				const sinkInputs = getClientSinkInputs(pai)({ pulse: this.props });
+				this.toggleAllMute(sinkInputs);
+			}
 		} else if (pai.type === 'module') {
-			const sinkInputs = getModuleSinkInputs(pai)({ pulse: this.props });
-			this.toggleAllMute(sinkInputs);
+			if (shift) {
+				const sourceOutputs = getModuleSourceOutputs(pai)({ pulse: this.props });
+				this.toggleAllMute(sourceOutputs);
+			} else {
+				const sinkInputs = getModuleSinkInputs(pai)({ pulse: this.props });
+				this.toggleAllMute(sinkInputs);
+			}
 		}
 	}
 
@@ -774,6 +795,20 @@ class Graph extends React.Component {
 		}
 
 		this.toggleMute(pai);
+	}
+
+	hotKeyShiftMute() {
+		if (!this.state.selected) {
+			return;
+		}
+
+		const pai = dgoToPai.get(this.state.selected);
+
+		if (!pai) {
+			return;
+		}
+
+		this.toggleMute(pai, undefined, true);
 	}
 
 	_hotKeyVolume(direction) {
