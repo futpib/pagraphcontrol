@@ -55,6 +55,38 @@ class GraphView extends GraphViewBase {
 			derivedState.nodes = props.layoutEngine.adjustNodes(derivedState.nodes, derivedState.nodesMap);
 		}
 
+		if (props.moved && props.selected) {
+			const edgeKey = `${props.moved.source}_${props.moved.target}`;
+			const nodeKey = `key-${props.selected.id}`;
+
+			if (derivedState.edgesMap[edgeKey] && derivedState.nodesMap[nodeKey]) {
+				derivedState.previousMoved = props.moved;
+
+				derivedState.draggingEdge = true;
+				derivedState.draggedEdge = props.moved;
+
+				derivedState.edgeEndNode = props.selected;
+
+				derivedState.hoveredNode = true;
+				derivedState.hoveredNodeData = props.selected;
+
+				derivedState.selectedNodeObj = {
+					nodeId: null,
+					node: null,
+				};
+			}
+		} else if (!props.moved && state.previousMoved) {
+			derivedState.previousMoved = null;
+
+			derivedState.draggingEdge = false;
+			derivedState.draggedEdge = null;
+
+			derivedState.edgeEndNode = null;
+
+			derivedState.hoveredNode = false;
+			derivedState.hoveredNodeData = null;
+		}
+
 		return derivedState;
 	}
 
@@ -77,7 +109,37 @@ class GraphView extends GraphViewBase {
 			}
 		}
 
+		if (!prevProps.moved && this.props.moved) {
+			this.removeEdgeElement(this.props.moved.source, this.props.moved.target);
+		} else if (prevProps.moved && !this.props.moved) {
+			const container = document.querySelector('#edge-custom-container');
+			if (container) {
+				container.remove();
+			}
+		}
+
+		if (this.props.selected &&
+			this.props.moved &&
+			(
+				prevProps.selected !== this.props.selected ||
+				prevProps.moved !== this.props.moved
+			) &&
+			this.state.draggedEdge
+		) {
+			this.dragEdge();
+		}
+
 		super.componentDidUpdate(prevProps, prevState);
+	}
+
+	getMouseCoordinates() {
+		if (this.props.selected && this.props.moved) {
+			return [
+				this.props.selected.x,
+				this.props.selected.y,
+			];
+		}
+		return super.getMouseCoordinates();
 	}
 
 	getNodeComponent(id, node) {

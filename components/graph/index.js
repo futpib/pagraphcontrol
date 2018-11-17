@@ -526,6 +526,7 @@ class Graph extends React.Component {
 
 		this.state = {
 			selected: null,
+			moved: null,
 		};
 
 		this._requestedIcons = new Set();
@@ -627,7 +628,8 @@ class Graph extends React.Component {
 				(nextProps.infos === this.props.infos) &&
 				(nextProps.preferences === this.props.preferences) &&
 				(nextProps.icons === this.props.icons) &&
-				(nextState.selected === this.state.selected)
+				(nextState.selected === this.state.selected) &&
+				(nextState.moved === this.state.moved)
 		);
 	}
 
@@ -708,7 +710,7 @@ class Graph extends React.Component {
 	onSwapEdge(sourceNode, targetNode, edge) {
 		if (edge.type === 'sinkInput') {
 			this.props.moveSinkInput(edge.index, targetNode.index);
-		} else {
+		} else if (edge.type === 'sourceOutput') {
 			this.props.moveSourceOutput(edge.index, targetNode.index);
 		}
 	}
@@ -779,8 +781,19 @@ class Graph extends React.Component {
 		this.graphViewElement.focus();
 	}
 
-	deselect() {
-		this.setState({ selected: null });
+	hotKeyEscape() {
+		const { moved } = this.state;
+
+		if (moved) {
+			this.setState({
+				moved: null,
+			});
+			return;
+		}
+
+		this.setState({
+			selected: null,
+		});
 	}
 
 	hotKeyMute() {
@@ -870,11 +883,19 @@ class Graph extends React.Component {
 	}
 
 	hotKeyFocusDown() {
+		if (this._hotKeyMovePosition('down')) {
+			return;
+		}
+
 		const selected = this._findNextObjectForSelection(this.state.selected, 'down');
 		this.setState({ selected });
 	}
 
 	hotKeyFocusUp() {
+		if (this._hotKeyMovePosition('up')) {
+			return;
+		}
+
 		const selected = this._findNextObjectForSelection(this.state.selected, 'up');
 		this.setState({ selected });
 	}
@@ -932,11 +953,76 @@ class Graph extends React.Component {
 	}
 
 	hotKeyFocusLeft() {
+		if (this._hotKeyMovePosition('left')) {
+			return;
+		}
+
 		this._focusHorizontal('left');
 	}
 
 	hotKeyFocusRight() {
+		if (this._hotKeyMovePosition('right')) {
+			return;
+		}
+
 		this._focusHorizontal('right');
+	}
+
+	_hotKeyMovePosition(direction) {
+		const { selected, moved } = this.state;
+
+		if (!selected ||
+			selected !== moved ||
+			![ 'sink', 'source', 'client', 'module' ].includes(moved.type)
+		) {
+			return false;
+		}
+
+		const x = direction === 'right' ? 1 : direction === 'left' ? -1 : 0;
+		const y = direction === 'down' ? 1 : direction === 'up' ? -1 : 0;
+
+		moved.x += x * (size + (size / 12));
+		moved.y += y * (size + (size / 12));
+
+		this.forceUpdate();
+
+		return true;
+	}
+
+	hotKeyMove() {
+		let { selected, moved } = this.state;
+
+		if (!selected) {
+			return;
+		}
+
+		if (moved) {
+			this.onSwapEdge(null, selected, moved);
+			this.setState({
+				selected: moved,
+				moved: null,
+			});
+			return;
+		}
+
+		moved = selected;
+
+		if (moved.type === 'sinkInput') {
+			selected = find(
+				node => node.id !== moved.target && node.type === 'sink',
+				this.state.nodes,
+			);
+		} else if (moved.type === 'sourceOutput') {
+			selected = find(
+				node => node.id !== moved.target && node.type === 'source',
+				this.state.nodes,
+			);
+		}
+
+		this.setState({
+			selected,
+			moved,
+		});
 	}
 
 	render() {
@@ -954,6 +1040,7 @@ class Graph extends React.Component {
 			edges,
 
 			selected: this.state.selected,
+			moved: this.state.moved,
 
 			nodeTypes: {},
 			nodeSubtypes: {},

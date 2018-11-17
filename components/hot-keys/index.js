@@ -24,11 +24,13 @@ const keyMap = {
 	hotKeyFocusLeft: [ 'h', 'left' ],
 	hotKeyFocusRight: [ 'l', 'right' ],
 
+	hotKeyMove: 'm',
+
 	hotKeyVolumeDown: [ '/', '9' ],
 	hotKeyVolumeUp: [ '*', '0' ],
 
-	hotKeyMute: 'm',
-	hotKeyShiftMute: 'M',
+	hotKeyMute: 'space',
+	hotKeyShiftMute: 'shift+space',
 };
 
 class MyHotKeys extends React.Component {
@@ -72,7 +74,7 @@ class MyHotKeys extends React.Component {
 
 	hotKeyEscape() {
 		this.hotKeyFocusGraph();
-		this.graphRef.current.getWrappedInstance().deselect();
+		this.graphRef.current.getWrappedInstance().hotKeyEscape();
 	}
 
 	render() {

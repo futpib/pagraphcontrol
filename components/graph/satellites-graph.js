@@ -92,7 +92,7 @@ class GraphView extends React.Component {
 	static getDerivedStateFromProps(props) {
 		const originalEdgesByTargetNodeKey = groupBy(prop('target'), props.edges);
 
-		let { selected } = props;
+		let { selected, moved } = props;
 
 		const satelliteEdges = [];
 
@@ -106,6 +106,10 @@ class GraphView extends React.Component {
 				selected = satelliteEdge;
 			}
 
+			if (edge === moved) {
+				moved = satelliteEdge;
+			}
+
 			satelliteEdges.push(satelliteEdge);
 
 			return satelliteNode;
@@ -115,7 +119,9 @@ class GraphView extends React.Component {
 			originalEdgesByTargetNodeKey,
 			satelliteNodesByTargetNodeKey,
 			satelliteEdges,
+
 			selected,
+			moved,
 		};
 	}
 
@@ -206,7 +212,9 @@ class GraphView extends React.Component {
 		const {
 			satelliteNodesByTargetNodeKey,
 			satelliteEdges: edges,
+
 			selected,
+			moved,
 		} = this.state;
 
 		const nodes = flatten(map(node => {
@@ -219,6 +227,7 @@ class GraphView extends React.Component {
 			...this.props,
 
 			selected,
+			moved,
 
 			ref: this.graphViewRef,
 
