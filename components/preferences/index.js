@@ -84,8 +84,8 @@ class Preferences extends React.Component {
 
 			r.div([
 				r(Checkbox, {
-					checked: this.props.preferences.hideDisconnectedSource,
-					onChange: () => this.props.actions.toggle('hideDisconnectedSource'),
+					checked: this.props.preferences.hideDisconnectedSources,
+					onChange: () => this.props.actions.toggle('hideDisconnectedSources'),
 				}, 'Hide disconnected source'),
 			]),
 

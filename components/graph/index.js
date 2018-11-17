@@ -555,6 +555,9 @@ class Graph extends React.Component {
 
 		const connectedNodeKeys = new Set();
 		edges.forEach(edge => {
+			if (edge.type === 'monitorSource') {
+				return;
+			}
 			connectedNodeKeys.add(edge.source);
 			connectedNodeKeys.add(edge.target);
 		});
