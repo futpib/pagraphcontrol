@@ -36,6 +36,10 @@ class Cards extends React.Component {
 		this.setState({ open: false });
 	}
 
+	isOpen() {
+		return this.state.open;
+	}
+
 	render() {
 		const { open } = this.state;
 		const toggle = this.toggle.bind(this);

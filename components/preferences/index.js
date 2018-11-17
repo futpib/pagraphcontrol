@@ -17,6 +17,15 @@ const Button = require('../button');
 const Checkbox = require('../checkbox');
 const NumberInput = require('../number-input');
 
+const VolumeRatioInput = ({ pref, fallback, preferences, actions, children }) => r(NumberInput, {
+	type: 'number',
+	value: defaultTo(fallback, Math.round(preferences[pref] * 100)),
+	onChange: e => {
+		const v = defaultTo(fallback, Math.max(0, parseInt(e.target.value, 10)));
+		actions.set({ [pref]: v / 100 });
+	},
+}, children);
+
 class Preferences extends React.Component {
 	constructor(props) {
 		super(props);
@@ -32,6 +41,10 @@ class Preferences extends React.Component {
 
 	close() {
 		this.setState({ open: false });
+	}
+
+	isOpen() {
+		return this.state.open;
 	}
 
 	render() {
@@ -123,14 +136,19 @@ class Preferences extends React.Component {
 			]),
 
 			r.div([
-				r(NumberInput, {
-					type: 'number',
-					value: defaultTo(150, Math.round(this.props.preferences.maxVolume * 100)),
-					onChange: e => {
-						const v = defaultTo(150, Math.max(0, parseInt(e.target.value, 10)));
-						this.props.actions.set({ maxVolume: v / 100 });
-					},
+				r(VolumeRatioInput, {
+					pref: 'maxVolume',
+					fallback: 150,
+					...this.props,
 				}, 'Maximum volume: '),
+			]),
+
+			r.div([
+				r(VolumeRatioInput, {
+					pref: 'volumeStep',
+					fallback: 10,
+					...this.props,
+				}, 'Volume step: '),
 			]),
 
 			r.hr(),

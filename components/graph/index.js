@@ -11,10 +11,13 @@ const {
 	forEach,
 	keys,
 	map,
+	max,
 	merge,
+	min,
 	path,
 	pick,
 	prop,
+	reduce,
 	repeat,
 	sortBy,
 	values,
@@ -63,6 +66,9 @@ const {
 } = require('./base');
 
 const LayoutEngine = require('./layout-engine');
+
+const maximum = reduce(max, -Infinity);
+const clamp = (v, lo, hi) => min(hi, max(lo, v));
 
 const leftOf = (x, xs) => {
 	const i = ((xs.indexOf(x) + xs.length - 1) % xs.length);
@@ -259,7 +265,7 @@ const getVolumesForThumbnail = ({ pai, state }) => {
 	if (lockChannelsTogether) {
 		if (volumes.every(v => v === volumes[0])) {
 			volumes = [
-				volumes.reduce((a, b) => Math.max(a, b)),
+				maximum(volumes),
 			];
 		}
 	}
@@ -313,8 +319,8 @@ const VolumeThumbnail = ({ pai, state }) => {
 		}),
 
 		...volumes.map((v, i) => {
-			const a = Math.min(v / normVolume, baseVolume / normVolume);
-			const b = Math.min(v / normVolume, 1);
+			const a = min(v / normVolume, baseVolume / normVolume);
+			const b = min(v / normVolume, 1);
 			const c = v / normVolume;
 
 			return r(React.Fragment, [
@@ -351,14 +357,14 @@ const getVolumes = ({ pai, state }) => {
 	let volumes = (pai && pai.channelVolumes) || [];
 	if (lockChannelsTogether) {
 		volumes = [
-			volumes.reduce((a, b) => Math.max(a, b)),
+			maximum(volumes),
 		];
 	}
 	return { volumes, lockChannelsTogether };
 };
 
 const VolumeControls = ({ pai, state }) => {
-	const { maxVolume } = state.preferences;
+	const { maxVolume, volumeStep } = state.preferences;
 	const { volumes, lockChannelsTogether } = getVolumes({ pai, state });
 	const baseVolume = pai && pai.baseVolume;
 	const muted = !pai || pai.muted;
@@ -371,6 +377,7 @@ const VolumeControls = ({ pai, state }) => {
 			baseVolume,
 			normVolume: PA_VOLUME_NORM,
 			maxVolume: PA_VOLUME_NORM * maxVolume,
+			volumeStep,
 			value: v,
 			onChange: v => {
 				if (pai.type === 'sink') {
@@ -768,6 +775,54 @@ class Graph extends React.Component {
 		this.toggleMute(pai);
 	}
 
+	_hotKeyVolume(direction) {
+		if (!this.state.selected) {
+			return;
+		}
+
+		const pai = dgoToPai.get(this.state.selected);
+
+		if (!pai) {
+			return;
+		}
+
+		if (![ 'sink', 'source', 'sinkInput', 'sourceOutput' ].includes(pai.type)) {
+			return;
+		}
+
+		const { lockChannelsTogether, maxVolume, volumeStep } = this.props.preferences;
+
+		const d = direction === 'up' ? 1 : -1;
+
+		let newVolumes = map(
+			v => clamp(v + (d * (volumeStep * PA_VOLUME_NORM)), 0, maxVolume * PA_VOLUME_NORM),
+			pai.channelVolumes,
+		);
+
+		if (lockChannelsTogether) {
+			const max = maximum(newVolumes);
+			newVolumes = map(() => max, newVolumes);
+		}
+
+		if (pai.type === 'sink') {
+			this.props.setSinkVolumes(pai.index, newVolumes);
+		} else if (pai.type === 'source') {
+			this.props.setSourceVolumes(pai.index, newVolumes);
+		} else if (pai.type === 'sinkInput') {
+			this.props.setSinkInputVolumes(pai.index, newVolumes);
+		} else if (pai.type === 'sourceOutput') {
+			this.props.setSourceOutputVolumes(pai.index, newVolumes);
+		}
+	}
+
+	hotKeyVolumeDown() {
+		this._hotKeyVolume('down');
+	}
+
+	hotKeyVolumeUp() {
+		this._hotKeyVolume('up');
+	}
+
 	_findNextObjectForSelection(object, direction) {
 		const { type } = object || { type: 'client' };
 		const predicate = selectionObjectTypes.toPulsePredicate(type);
@@ -834,12 +889,6 @@ class Graph extends React.Component {
 
 	hotKeyFocusRight() {
 		this._focusHorizontal('right');
-	}
-
-	hotKeyVolumeDown() {
-	}
-
-	hotKeyVolumeUp() {
 	}
 
 	render() {

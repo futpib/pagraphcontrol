@@ -21,6 +21,7 @@ const initialState = {
 	lockChannelsTogether: true,
 
 	maxVolume: 1.5,
+	volumeStep: 1 / 20,
 
 	showDebugInfo: false,
 };

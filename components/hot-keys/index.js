@@ -24,6 +24,9 @@ const keyMap = {
 	hotKeyFocusLeft: [ 'h', 'left' ],
 	hotKeyFocusRight: [ 'l', 'right' ],
 
+	hotKeyVolumeDown: [ '/', '9' ],
+	hotKeyVolumeUp: [ '*', '0' ],
+
 	hotKeyMute: 'm',
 };
 
@@ -36,9 +39,18 @@ class MyHotKeys extends React.Component {
 		this.preferencesRef = React.createRef();
 	}
 
+	componentDidMount() {
+		this.hotKeyFocusGraph();
+	}
+
 	hotKeyFocusCards() {
-		this.cardsRef.current.getWrappedInstance().toggle();
 		this.preferencesRef.current.getWrappedInstance().close();
+
+		const cards = this.cardsRef.current.getWrappedInstance();
+		cards.toggle();
+		if (!cards.isOpen()) {
+			this.graphRef.current.getWrappedInstance().focus();
+		}
 	}
 
 	hotKeyFocusGraph() {
@@ -48,8 +60,13 @@ class MyHotKeys extends React.Component {
 	}
 
 	hotKeyFocusPreferences() {
-		this.preferencesRef.current.getWrappedInstance().toggle();
 		this.cardsRef.current.getWrappedInstance().close();
+
+		const preferences = this.preferencesRef.current.getWrappedInstance();
+		preferences.toggle();
+		if (!preferences.isOpen()) {
+			this.graphRef.current.getWrappedInstance().focus();
+		}
 	}
 
 	hotKeyEscape() {
