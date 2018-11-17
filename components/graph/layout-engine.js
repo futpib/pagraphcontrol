@@ -1,21 +1,34 @@
 
+const {
+	filter,
+} = require('ramda');
+
 const { size } = require('../../constants/view');
+
+const plusMinus = require('../../utils/plus-minus');
 
 const margin = size / 10;
 const step = size + (2 * margin);
 
-function nodesIntersect(a, b) {
-	if (a.x === undefined || a.y === undefined || b.x === undefined || b.y === undefined) {
-		return undefined;
-	}
+const offsetY = 1080 / 2;
 
-	return (((a.x - size - margin) < b.x) && (b.x < (a.x + size + margin))) &&
-		(((a.y - size - margin) < b.y) && (b.y < (a.y + size + margin)));
-}
+const centerColumnsCount = 5;
 
 module.exports = class LayoutEngine {
-	constructor(graphViewProps) {
-		this.graphViewProps = graphViewProps;
+	constructor() {
+		Object.assign(this, {
+			size,
+			margin,
+		});
+	}
+
+	nodesIntersect(a, b) {
+		if (a.x === undefined || a.y === undefined || b.x === undefined || b.y === undefined) {
+			return undefined;
+		}
+
+		return (((a.x - size - margin) < b.x) && (b.x < (a.x + size + margin))) &&
+			(((a.y - size - margin) < b.y) && (b.y < (a.y + size + margin)));
 	}
 
 	calculatePosition(node) {
@@ -23,36 +36,76 @@ module.exports = class LayoutEngine {
 	}
 
 	adjustNodes(nodes) {
-		nodes.forEach(node => {
+		const targetClientsColumnHeight = Math.round(filter(
+			x => x.type === 'sink' || x.type === 'source',
+			nodes,
+		).length * 0.75);
+
+		const estimatedColumnHeights = {
+			total: 0,
+
+			get(k) {
+				return this[k] || 0;
+			},
+
+			inc(k) {
+				this[k] = this[k] || 0;
+				this[k] += 1;
+				this.total += 1;
+				return this[k];
+			},
+		};
+
+		const nodeColumn = node => Math.round(node.x / step) - 2;
+
+		const unpositionedNodes = nodes.filter(node => {
 			if (node.type === 'satellite') {
-				return;
+				return false;
 			}
 
 			if (node.x !== undefined) {
-				return;
+				estimatedColumnHeights.inc(nodeColumn(node));
+				return false;
 			}
 
+			return true;
+		});
+
+		unpositionedNodes.forEach(node => {
 			if (node.type === 'source') {
 				node.x = 0 * step;
 			} else if (node.type === 'sink') {
 				node.x = 8 * step;
 			} else {
-				node.x = (2 * step) + ((node.index % 5) * step);
+				let targetCol = node.index % centerColumnsCount;
+				if (estimatedColumnHeights.get(2) < targetClientsColumnHeight) {
+					targetCol = 2;
+				}
+				node.x = (2 * step) + (targetCol * step);
 			}
 
-			node.y = 0;
+			const columnHeight = estimatedColumnHeights.inc(nodeColumn(node));
 
-			for (const otherNode of nodes) {
-				if (otherNode.type === 'satellite') {
-					continue;
-				}
+			const direction = Math.sign(plusMinus(node.index));
 
-				if (otherNode === node) {
-					continue;
-				}
+			node.y = offsetY + (direction * (Math.floor(columnHeight / 2) - 1) * (size + margin));
 
-				if (nodesIntersect(node, otherNode)) {
-					node.y += size + margin;
+			let intersected = true;
+			while (intersected) {
+				intersected = false;
+				for (const otherNode of nodes) {
+					if (otherNode.type === 'satellite') {
+						continue;
+					}
+
+					if (otherNode === node) {
+						continue;
+					}
+
+					if (this.nodesIntersect(node, otherNode)) {
+						node.y += direction * (size + margin);
+						intersected = true;
+					}
 				}
 			}
 		});
