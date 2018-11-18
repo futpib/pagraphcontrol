@@ -11,6 +11,7 @@ const createStore = require('./store');
 const Graph = require('./components/graph');
 const Cards = require('./components/cards');
 const Preferences = require('./components/preferences');
+const Log = require('./components/log');
 const { HotKeys } = require('./components/hot-keys');
 const { MenuProvider } = require('./components/menu');
 
@@ -22,6 +23,7 @@ const Root = () => r(ReduxProvider, {
 	r(Graph, { ref: graphRef }),
 	r(Cards, { ref: cardsRef }),
 	r(Preferences, { ref: preferencesRef }),
+	r(Log),
 ])));
 
 Object.entries(theme.colors).forEach(([ key, value ]) => {

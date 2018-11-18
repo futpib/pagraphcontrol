@@ -172,6 +172,35 @@ div[tabindex="-1"]:focus {
 	opacity: 1;
 }
 
+.log {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	padding: 1rem;
+	overflow: auto;
+	pointer-events: none;
+}
+
+.log-item-error {
+	color: var(--errorColor);
+}
+
+.log-item-transition-enter {
+	opacity: 0.01;
+}
+.log-item-transition-enter.log-item-transition-enter-active {
+	opacity: 1;
+	transition: opacity .3s ease-in;
+}
+
+.log-item-transition-leave {
+	opacity: 1;
+}
+.log-item-transition-leave.log-item-transition-leave-active {
+	opacity: 0.01;
+	transition: opacity 2s ease-out;
+}
+
 .panel {
 	position: absolute;
 	top: 0;

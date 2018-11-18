@@ -6,6 +6,8 @@ module.exports = createActionCreators({
 		READY: null,
 		CLOSE: null,
 
+		ERROR: null,
+
 		NEW: null,
 		CHANGE: null,
 		REMOVE: null,

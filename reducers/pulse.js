@@ -7,6 +7,7 @@ const {
 	map,
 	pick,
 	equals,
+	takeLast,
 } = require('ramda');
 
 const { combineReducers } = require('redux');
@@ -22,6 +23,8 @@ const initialState = {
 
 	objects: fromPairs(map(({ key }) => [ key, {} ], things)),
 	infos: fromPairs(map(({ key }) => [ key, {} ], things)),
+
+	log: { errors: [] },
 };
 
 const reducer = combineReducers({
@@ -94,6 +97,12 @@ const reducer = combineReducers({
 		},
 		[pulse.close]: () => initialState.objects[key],
 	}, initialState.infos[key]) ], things))),
+
+	log: combineReducers({
+		errors: handleActions({
+			[pulse.error]: (state, { payload }) => takeLast(3, state.concat(payload)),
+		}, initialState.log.errors),
+	}),
 });
 
 module.exports = {

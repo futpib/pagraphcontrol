@@ -134,90 +134,94 @@ module.exports = store => {
 
 	reconnect();
 
-	const rethrow = error => {
-		if (error) {
-			throw error;
+	const handleError = error => {
+		if (!error) {
+			return;
 		}
+
+		console.error(error);
+
+		store.dispatch(pulseActions.error(error));
 	};
 
 	const handlePulseActions = handleActions({
 		[pulseActions.moveSinkInput]: (state, { payload: { sinkInputIndex, destSinkIndex } }) => {
-			pa.moveSinkInput(sinkInputIndex, destSinkIndex, rethrow);
+			pa.moveSinkInput(sinkInputIndex, destSinkIndex, handleError);
 			return state;
 		},
 		[pulseActions.moveSourceOutput]: (state, { payload: { sourceOutputIndex, destSourceIndex } }) => {
-			pa.moveSourceOutput(sourceOutputIndex, destSourceIndex, rethrow);
+			pa.moveSourceOutput(sourceOutputIndex, destSourceIndex, handleError);
 			return state;
 		},
 
 		[pulseActions.killClientByIndex]: (state, { payload: { clientIndex } }) => {
-			pa.killClientByIndex(clientIndex, rethrow);
+			pa.killClientByIndex(clientIndex, handleError);
 			return state;
 		},
 
 		[pulseActions.killSinkInputByIndex]: (state, { payload: { sinkInputIndex } }) => {
-			pa.killSinkInputByIndex(sinkInputIndex, rethrow);
+			pa.killSinkInputByIndex(sinkInputIndex, handleError);
 			return state;
 		},
 		[pulseActions.killSourceOutputByIndex]: (state, { payload: { sourceOutputIndex } }) => {
-			pa.killSourceOutputByIndex(sourceOutputIndex, rethrow);
+			pa.killSourceOutputByIndex(sourceOutputIndex, handleError);
 			return state;
 		},
 
 		[pulseActions.unloadModuleByIndex]: (state, { payload: { moduleIndex } }) => {
-			pa.unloadModuleByIndex(moduleIndex, rethrow);
+			pa.unloadModuleByIndex(moduleIndex, handleError);
 			return state;
 		},
 
 		[pulseActions.setSinkVolumes]: (state, { payload: { index, channelVolumes } }) => {
-			pa.setSinkVolumes(index, channelVolumes, rethrow);
+			pa.setSinkVolumes(index, channelVolumes, handleError);
 			return state;
 		},
 		[pulseActions.setSourceVolumes]: (state, { payload: { index, channelVolumes } }) => {
-			pa.setSourceVolumes(index, channelVolumes, rethrow);
+			pa.setSourceVolumes(index, channelVolumes, handleError);
 			return state;
 		},
 		[pulseActions.setSinkInputVolumes]: (state, { payload: { index, channelVolumes } }) => {
-			pa.setSinkInputVolumesByIndex(index, channelVolumes, rethrow);
+			pa.setSinkInputVolumesByIndex(index, channelVolumes, handleError);
 			return state;
 		},
 		[pulseActions.setSourceOutputVolumes]: (state, { payload: { index, channelVolumes } }) => {
-			pa.setSourceOutputVolumesByIndex(index, channelVolumes, rethrow);
+			pa.setSourceOutputVolumesByIndex(index, channelVolumes, handleError);
 			return state;
 		},
 
 		[pulseActions.setSinkChannelVolume]: (state, { payload: { index, channelIndex, volume } }) => {
-			return setSinkChannelVolume(pa, store, index, channelIndex, volume, rethrow);
+			return setSinkChannelVolume(pa, store, index, channelIndex, volume, handleError);
 		},
 		[pulseActions.setSourceChannelVolume]: (state, { payload: { index, channelIndex, volume } }) => {
-			return setSourceChannelVolume(pa, store, index, channelIndex, volume, rethrow);
+			return setSourceChannelVolume(pa, store, index, channelIndex, volume, handleError);
 		},
 		[pulseActions.setSinkInputChannelVolume]: (state, { payload: { index, channelIndex, volume } }) => {
-			return setSinkInputChannelVolume(pa, store, index, channelIndex, volume, rethrow);
+			return setSinkInputChannelVolume(pa, store, index, channelIndex, volume, handleError);
 		},
 		[pulseActions.setSourceOutputChannelVolume]: (state, { payload: { index, channelIndex, volume } }) => {
-			return setSourceOutputChannelVolume(pa, store, index, channelIndex, volume, rethrow);
+			return setSourceOutputChannelVolume(pa, store, index, channelIndex, volume, handleError);
 		},
 
 		[pulseActions.setCardProfile]: (state, { payload: { index, profileName } }) => {
-			pa.setCardProfile(index, profileName, rethrow);
+			pa.setCardProfile(index, profileName, handleError);
 			return state;
 		},
 
 		[pulseActions.setSinkMute]: (state, { payload: { index, muted } }) => {
-			pa.setSinkMute(index, muted, rethrow);
+			pa.setSinkMute(index, muted, handleError);
 			return state;
 		},
 		[pulseActions.setSourceMute]: (state, { payload: { index, muted } }) => {
-			pa.setSourceMute(index, muted, rethrow);
+			pa.setSourceMute(index, muted, handleError);
 			return state;
 		},
 		[pulseActions.setSinkInputMuteByIndex]: (state, { payload: { index, muted } }) => {
-			pa.setSinkInputMuteByIndex(index, muted, rethrow);
+			pa.setSinkInputMuteByIndex(index, muted, handleError);
 			return state;
 		},
 		[pulseActions.setSourceOutputMuteByIndex]: (state, { payload: { index, muted } }) => {
-			pa.setSourceOutputMuteByIndex(index, muted, rethrow);
+			pa.setSourceOutputMuteByIndex(index, muted, handleError);
 			return state;
 		},
 	}, null);
