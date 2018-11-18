@@ -33,6 +33,8 @@ const { bindActionCreators } = require('redux');
 
 const { HotKeys } = require('react-hotkeys');
 
+const { PopupMenu, MenuItem } = require('@futpib/react-electron-menu');
+
 const d = require('../../utils/d');
 const memoize = require('../../utils/memoize');
 
@@ -520,6 +522,19 @@ const renderEdgeText = state => ({ data: dgo, transform, selected }) => {
 
 const layoutEngine = new LayoutEngine();
 
+class GraphContextMenu extends React.PureComponent {
+	render() {
+		return r(PopupMenu, {
+			onClose: this.props.onClose,
+		}, [
+			r(MenuItem, {
+				label: 'Delete',
+				onClick: this.props.onDelete,
+			}),
+		]);
+	}
+}
+
 class Graph extends React.Component {
 	constructor(props) {
 		super(props);
@@ -543,6 +558,9 @@ class Graph extends React.Component {
 			onSwapEdge: this.onSwapEdge.bind(this),
 			onDeleteEdge: this.onDeleteEdge.bind(this),
 			onEdgeMouseDown: this.onEdgeMouseDown.bind(this),
+
+			onContextMenuDelete: this.onContextMenuDelete.bind(this),
+			onContextMenuClose: this.onContextMenuClose.bind(this),
 		});
 	}
 
@@ -622,7 +640,11 @@ class Graph extends React.Component {
 			dgoToPai.set(edge, pai);
 		});
 
-		let { selected, moved } = state;
+		let { selected, moved, contexted } = state;
+
+		if (contexted && selected !== contexted) {
+			contexted = null;
+		}
 
 		if (selected) {
 			selected = find(x => x.id === selected.id, nodes) ||
@@ -634,12 +656,18 @@ class Graph extends React.Component {
 				find(x => x.id === moved.id, edges);
 		}
 
+		if (contexted) {
+			contexted = find(x => x.id === contexted.id, nodes) ||
+				find(x => x.id === contexted.id, edges);
+		}
+
 		return {
 			nodes,
 			edges,
 
 			selected,
 			moved,
+			contexted,
 		};
 	}
 
@@ -650,6 +678,7 @@ class Graph extends React.Component {
 				(nextProps.preferences === this.props.preferences) &&
 				(nextProps.icons === this.props.icons) &&
 				(nextState.selected === this.state.selected) &&
+				(nextState.contexted === this.state.contexted) &&
 				(nextState.moved === this.state.moved)
 		);
 	}
@@ -693,19 +722,7 @@ class Graph extends React.Component {
 	}
 
 	onDeleteNode(selected) {
-		const pai = dgoToPai.get(selected);
-
-		if (selected.type === 'client') {
-			this.props.killClientByIndex(selected.index);
-		} else if (selected.type === 'module') {
-			this.props.unloadModuleByIndex(selected.index);
-		} else if (
-			(selected.type === 'sink' || selected.type === 'source') &&
-				pai &&
-				typeof pai.moduleIndex === 'number'
-		) {
-			this.props.unloadModuleByIndex(pai.moduleIndex);
-		}
+		this.onDelete(selected);
 	}
 
 	onNodeMouseDown(event, data) {
@@ -718,6 +735,11 @@ class Graph extends React.Component {
 			) {
 				this.toggleMute(pai);
 			}
+		} else if (pai && event.button === 2) {
+			this.setState({
+				selected: data,
+				contexted: data,
+			});
 		}
 	}
 
@@ -737,11 +759,7 @@ class Graph extends React.Component {
 	}
 
 	onDeleteEdge(selected) {
-		if (selected.type === 'sinkInput') {
-			this.props.killSinkInputByIndex(selected.index);
-		} else if (selected.type === 'sourceOutput') {
-			this.props.killSourceOutputByIndex(selected.index);
-		}
+		this.onDelete(selected);
 	}
 
 	onEdgeMouseDown(event, data) {
@@ -752,6 +770,11 @@ class Graph extends React.Component {
 			) {
 				this.toggleMute(pai);
 			}
+		} else if (pai && event.button === 2) {
+			this.setState({
+				selected: data,
+				contexted: data,
+			});
 		}
 	}
 
@@ -796,6 +819,36 @@ class Graph extends React.Component {
 				this.toggleAllMute(sinkInputs);
 			}
 		}
+	}
+
+	onDelete(selected) {
+		const pai = dgoToPai.get(selected);
+
+		if (selected.type === 'client') {
+			this.props.killClientByIndex(selected.index);
+		} else if (selected.type === 'module') {
+			this.props.unloadModuleByIndex(selected.index);
+		} else if (selected.type === 'sinkInput') {
+			this.props.killSinkInputByIndex(selected.index);
+		} else if (selected.type === 'sourceOutput') {
+			this.props.killSourceOutputByIndex(selected.index);
+		} else if (
+			(selected.type === 'sink' || selected.type === 'source') &&
+				pai &&
+				typeof pai.moduleIndex === 'number'
+		) {
+			this.props.unloadModuleByIndex(pai.moduleIndex);
+		}
+	}
+
+	onContextMenuDelete() {
+		this.onDelete(this.state.selected);
+	}
+
+	onContextMenuClose() {
+		this.setState({
+			contexted: null,
+		});
 	}
 
 	focus() {
@@ -1054,48 +1107,55 @@ class Graph extends React.Component {
 			handlers: map(f => bind(f, this), pick(keys(keyMap), this)),
 		}, r.div({
 			id: 'graph',
-		}, r(GraphView, {
-			nodeKey: 'id',
-			edgeKey: 'id',
+		}, [
+			r(GraphView, {
+				nodeKey: 'id',
+				edgeKey: 'id',
 
-			nodes,
-			edges,
+				nodes,
+				edges,
 
-			selected: this.state.selected,
-			moved: this.state.moved,
+				selected: this.state.selected,
+				moved: this.state.moved,
 
-			nodeTypes: {},
-			nodeSubtypes: {},
-			edgeTypes: {},
+				nodeTypes: {},
+				nodeSubtypes: {},
+				edgeTypes: {},
 
-			onSelectNode: this.onSelectNode,
-			onCreateNode: this.onCreateNode,
-			onUpdateNode: this.onUpdateNode,
-			onDeleteNode: this.onDeleteNode,
-			onNodeMouseDown: this.onNodeMouseDown,
+				onSelectNode: this.onSelectNode,
+				onCreateNode: this.onCreateNode,
+				onUpdateNode: this.onUpdateNode,
+				onDeleteNode: this.onDeleteNode,
+				onNodeMouseDown: this.onNodeMouseDown,
 
-			onSelectEdge: this.onSelectEdge,
-			onCreateEdge: this.onCreateEdge,
-			onSwapEdge: this.onSwapEdge,
-			onDeleteEdge: this.onDeleteEdge,
-			onEdgeMouseDown: this.onEdgeMouseDown,
+				onSelectEdge: this.onSelectEdge,
+				onCreateEdge: this.onCreateEdge,
+				onSwapEdge: this.onSwapEdge,
+				onDeleteEdge: this.onDeleteEdge,
+				onEdgeMouseDown: this.onEdgeMouseDown,
 
-			showGraphControls: false,
+				showGraphControls: false,
 
-			edgeArrowSize: 64,
+				edgeArrowSize: 64,
 
-			layoutEngine,
+				layoutEngine,
 
-			backgroundFillId: '#background-pattern',
+				backgroundFillId: '#background-pattern',
 
-			renderDefs,
+				renderDefs,
 
-			renderNode,
-			renderNodeText: renderNodeText(this.props),
+				renderNode,
+				renderNodeText: renderNodeText(this.props),
 
-			renderEdge,
-			renderEdgeText: renderEdgeText(this.props),
-		})));
+				renderEdge,
+				renderEdgeText: renderEdgeText(this.props),
+			}),
+
+			this.state.contexted && r(GraphContextMenu, {
+				onClose: this.onContextMenuClose,
+				onDelete: this.onContextMenuDelete,
+			}),
+		]));
 	}
 }
 
