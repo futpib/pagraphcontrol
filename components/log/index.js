@@ -17,29 +17,43 @@ const { connect } = require('react-redux');
 
 const weakmapId = require('../../utils/weakmap-id');
 
+const { pulse: pulseActions } = require('../../actions');
+
+const actionTypeText = {
+	[pulseActions.ready]: 'Connected to PulseAudio',
+	[pulseActions.close]: 'Disconnected from PulseAudio',
+};
+
 class Log extends React.Component {
 	constructor(props) {
 		super(props);
 
 		this.state = {
-			removedErrors: [],
+			removedItems: [],
 		};
 	}
 
-	removeError(error) {
+	removeItem(item) {
 		this.setState({
-			removedErrors: takeLast(10, this.state.removedErrors.concat(weakmapId(error))),
+			removedItems: takeLast(10, this.state.removedItems.concat(weakmapId(item))),
 		});
 	}
 
-	shouldShowError(error) {
-		return !this.state.removedErrors.includes(weakmapId(error));
+	shouldShowItem(item) {
+		return !this.state.removedItems.includes(weakmapId(item));
+	}
+
+	itemText(item) {
+		if (item.type === 'error') {
+			return `${item.error.name}: ${item.error.message}`;
+		}
+		return actionTypeText[item.action] || item.action;
 	}
 
 	componentDidUpdate(prevProps) {
-		const newErrors = differenceWith((a, b) => a === b, this.props.log.errors, prevProps.log.errors);
-		newErrors.forEach(error => setTimeout(() => {
-			this.removeError(error);
+		const newItems = differenceWith((a, b) => a === b, this.props.log.items, prevProps.log.items);
+		newItems.forEach(item => setTimeout(() => {
+			this.removeItem(item);
 		}, this.props.itemLifetime));
 	}
 
@@ -51,12 +65,16 @@ class Log extends React.Component {
 			transitionEnterTimeout: 300,
 			transitionLeaveTimeout: 2000,
 		}, compose(
-			map(e => r.div({
-				key: weakmapId(e),
-				className: 'log-item-error',
-			}, `${e.name}: ${e.message}`)),
-			filter(e => this.shouldShowError(e)),
-		)(this.props.log.errors)));
+			map(item => r.div({
+				key: weakmapId(item),
+				classSet: {
+					'log-item': true,
+					'log-item-error': item.type === 'error',
+					'log-item-info': item.type === 'info',
+				},
+			}, this.itemText(item))),
+			filter(item => this.shouldShowItem(item)),
+		)(this.props.log.items)));
 	}
 }
 

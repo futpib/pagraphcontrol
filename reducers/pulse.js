@@ -26,8 +26,10 @@ const initialState = {
 	objects: fromPairs(map(({ key }) => [ key, {} ], things)),
 	infos: fromPairs(map(({ key }) => [ key, {} ], things)),
 
-	log: { errors: [] },
+	log: { items: [] },
 };
+
+const logMaxItems = 3;
 
 const reducer = combineReducers({
 	state: handleActions({
@@ -110,9 +112,20 @@ const reducer = combineReducers({
 	}, initialState.infos[key]) ], things))),
 
 	log: combineReducers({
-		errors: handleActions({
-			[pulse.error]: (state, { payload }) => takeLast(3, state.concat(payload)),
-		}, initialState.log.errors),
+		items: handleActions({
+			[pulse.error]: (state, { payload }) => takeLast(logMaxItems, state.concat({
+				type: 'error',
+				error: payload,
+			})),
+			[pulse.close]: (state, { type }) => takeLast(logMaxItems, state.concat({
+				type: 'info',
+				action: type,
+			})),
+			[pulse.ready]: (state, { type }) => takeLast(logMaxItems, state.concat({
+				type: 'info',
+				action: type,
+			})),
+		}, initialState.log.items),
 	}),
 });
 
