@@ -1,4 +1,6 @@
 
+require('dotenv').config();
+
 const { app, BrowserWindow } = require('electron');
 
 const theme = require('./utils/theme');
@@ -10,6 +12,10 @@ app.on('ready', () => {
 	win.setAutoHideMenuBar(true);
 	win.setMenuBarVisibility(false);
 	win.loadFile('index.html');
+
+	win.on('closed', () => {
+		app.quit();
+	});
 
 	if (process.env.NODE_ENV !== 'production') {
 		const { default: installExtension, REACT_DEVELOPER_TOOLS } = require('electron-devtools-installer');
