@@ -554,6 +554,7 @@ class Graph extends React.Component {
 			onNodeMouseDown: this.onNodeMouseDown.bind(this),
 
 			onSelectEdge: this.onSelectEdge.bind(this),
+			canCreateEdge: this.canCreateEdge.bind(this),
 			onCreateEdge: this.onCreateEdge.bind(this),
 			onSwapEdge: this.onSwapEdge.bind(this),
 			onDeleteEdge: this.onDeleteEdge.bind(this),
@@ -747,7 +748,28 @@ class Graph extends React.Component {
 		this.setState({ selected });
 	}
 
-	onCreateEdge() {
+	canCreateEdge(source, target) {
+		if (!target) {
+			return true;
+		}
+
+		if (source.type === 'source' && target.type === 'sink') {
+			return true;
+		}
+
+		return false;
+	}
+
+	onCreateEdge(source, target) {
+		const sourcePai = dgoToPai.get(source);
+		const targetPai = dgoToPai.get(target);
+		if (sourcePai && targetPai &&
+			source.type === 'source' && target.type === 'sink'
+		) {
+			this.props.loadModule('module-loopback', `source=${sourcePai.name} sink=${targetPai.name}`);
+		} else {
+			this.forceUpdate();
+		}
 	}
 
 	onSwapEdge(sourceNode, targetNode, edge) {
@@ -1129,6 +1151,7 @@ class Graph extends React.Component {
 				onNodeMouseDown: this.onNodeMouseDown,
 
 				onSelectEdge: this.onSelectEdge,
+				canCreateEdge: this.canCreateEdge,
 				onCreateEdge: this.onCreateEdge,
 				onSwapEdge: this.onSwapEdge,
 				onDeleteEdge: this.onDeleteEdge,

@@ -168,6 +168,10 @@ module.exports = store => {
 			return state;
 		},
 
+		[pulseActions.loadModule]: (state, { payload: { name, argument } }) => {
+			pa.loadModule(name, argument, handleError);
+			return state;
+		},
 		[pulseActions.unloadModuleByIndex]: (state, { payload: { moduleIndex } }) => {
 			pa.unloadModuleByIndex(moduleIndex, handleError);
 			return state;

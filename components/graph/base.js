@@ -21,12 +21,6 @@ const { size } = require('../../constants/view');
 
 class GraphView extends GraphViewBase {
 	constructor(props) {
-		if (!props.layoutEngine) {
-			props = merge(props, {
-				layoutEngineType: 'None',
-			});
-		}
-
 		super(props);
 
 		if (props.layoutEngine) {

@@ -22,6 +22,7 @@ module.exports = createActionCreators({
 		KILL_SINK_INPUT_BY_INDEX: sinkInputIndex => ({ sinkInputIndex }),
 		KILL_SOURCE_OUTPUT_BY_INDEX: sourceOutputIndex => ({ sourceOutputIndex }),
 
+		LOAD_MODULE: (name, argument) => ({ name, argument }),
 		UNLOAD_MODULE_BY_INDEX: moduleIndex => ({ moduleIndex }),
 
 		SET_SINK_VOLUMES: (index, channelVolumes) => ({ index, channelVolumes }),

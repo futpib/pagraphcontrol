@@ -78,6 +78,7 @@ class GraphView extends React.Component {
 
 			onSelectEdge: this.onSelectEdge.bind(this),
 			onEdgeMouseDown: this.onEdgeMouseDown.bind(this),
+			onCreateEdge: this.onCreateEdge.bind(this),
 
 			renderNode: this.renderNode.bind(this),
 			renderNodeText: this.renderNodeText.bind(this),
@@ -151,6 +152,12 @@ class GraphView extends React.Component {
 		const createdEdge = document.getElementById(createdEdgeId);
 		createdEdge.remove();
 		this.graphViewRef.current.forceUpdate();
+	}
+
+	onCreateEdge(source, target) {
+		const { nodeKey, onCreateEdge } = this.props;
+		onCreateEdge(source, target);
+		this.graphViewRef.current.removeEdgeElement(source[nodeKey], target[nodeKey]);
 	}
 
 	onNodeMove(position, nodeId, shiftKey) {
@@ -238,6 +245,8 @@ class GraphView extends React.Component {
 			onNodeMove: this.onNodeMove,
 
 			onSelectEdge: this.onSelectEdge,
+
+			onCreateEdge: this.onCreateEdge,
 
 			onEdgeMouseDown: this.onEdgeMouseDown,
 
