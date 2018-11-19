@@ -15,6 +15,7 @@ const {
 	max,
 	merge,
 	min,
+	omit,
 	path,
 	pick,
 	prop,
@@ -419,6 +420,20 @@ const VolumeControls = ({ pai, state }) => {
 	]);
 };
 
+const Icon = ({ state, name, ...props }) => {
+	const src = state.icons[name];
+
+	if (!src) {
+		return r(React.Fragment);
+	}
+
+	return r.img({
+		className: 'node-name-icon',
+		src,
+		...props,
+	});
+};
+
 const DebugText = ({ dgo, pai, state }) => r.div({
 	style: {
 		fontSize: '50%',
@@ -431,8 +446,19 @@ const DebugText = ({ dgo, pai, state }) => r.div({
 const SinkText = ({ dgo, pai, state, selected }) => r.div([
 	r.div({
 		className: 'node-name',
-		title: pai.name,
-	}, pai.description),
+	}, [
+		state.serverInfo.defaultSinkName === pai.name && r(React.Fragment, [
+			r(Icon, {
+				state,
+				name: 'starred',
+				title: 'Default sink',
+			}),
+			' ',
+		]),
+		r.span({
+			title: pai.name,
+		}, pai.description),
+	]),
 	!selected && r(VolumeThumbnail, { pai, state }),
 	selected && r(VolumeControls, { pai, state }),
 	r(DebugText, { dgo, pai, state }),
@@ -441,8 +467,19 @@ const SinkText = ({ dgo, pai, state, selected }) => r.div([
 const SourceText = ({ dgo, pai, state, selected }) => r.div([
 	r.div({
 		className: 'node-name',
-		title: pai.name,
-	}, pai.description),
+	}, [
+		state.serverInfo.defaultSourceName === pai.name && r(React.Fragment, [
+			r(Icon, {
+				state,
+				name: 'starred',
+				title: 'Default source',
+			}),
+			' ',
+		]),
+		r.span({
+			title: pai.name,
+		}, pai.description),
+	]),
 	!selected && r(VolumeThumbnail, { pai, state }),
 	selected && r(VolumeControls, { pai, state }),
 	r(DebugText, { dgo, pai, state }),
@@ -527,6 +564,14 @@ class GraphContextMenu extends React.PureComponent {
 		return r(PopupMenu, {
 			onClose: this.props.onClose,
 		}, [
+			this.props.canSetAsDefault() && r(React.Fragment, [
+				r(MenuItem, {
+					label: 'Set as default',
+					onClick: this.props.onSetAsDefault,
+				}),
+				r(MenuItem.Separator),
+			]),
+
 			r(MenuItem, {
 				label: 'Delete',
 				onClick: this.props.onDelete,
@@ -560,8 +605,12 @@ class Graph extends React.Component {
 			onDeleteEdge: this.onDeleteEdge.bind(this),
 			onEdgeMouseDown: this.onEdgeMouseDown.bind(this),
 
-			onContextMenuDelete: this.onContextMenuDelete.bind(this),
 			onContextMenuClose: this.onContextMenuClose.bind(this),
+
+			canContextMenuSetAsDefault: this.canContextMenuSetAsDefault.bind(this),
+			onContextMenuSetAsDefault: this.onContextMenuSetAsDefault.bind(this),
+
+			onContextMenuDelete: this.onContextMenuDelete.bind(this),
 		});
 	}
 
@@ -674,7 +723,8 @@ class Graph extends React.Component {
 
 	shouldComponentUpdate(nextProps, nextState) {
 		return !(
-			(nextProps.objects === this.props.objects) &&
+			(nextProps.serverInfo === this.props.serverInfo) &&
+				(nextProps.objects === this.props.objects) &&
 				(nextProps.infos === this.props.infos) &&
 				(nextProps.preferences === this.props.preferences) &&
 				(nextProps.icons === this.props.icons) &&
@@ -685,7 +735,7 @@ class Graph extends React.Component {
 	}
 
 	componentDidMount() {
-		this.getIconPath('audio-volume-muted');
+		this.getIconPath('starred');
 
 		this.graphViewElement = document.querySelector('#graph .view-wrapper');
 		this.graphViewElement.setAttribute('tabindex', '-1');
@@ -871,6 +921,41 @@ class Graph extends React.Component {
 		this.setState({
 			contexted: null,
 		});
+	}
+
+	canContextMenuSetAsDefault() {
+		const { contexted } = this.state;
+		const pai = dgoToPai.get(contexted);
+
+		if (pai && pai.type === 'sink' && pai.name !== this.props.serverInfo.defaultSinkName) {
+			return true;
+		}
+
+		if (pai && pai.type === 'source' && pai.name !== this.props.serverInfo.defaultSourceName) {
+			return true;
+		}
+
+		return false;
+	}
+
+	setAsDefault(data) {
+		const pai = dgoToPai.get(data);
+
+		if (pai.type === 'sink') {
+			this.props.setDefaultSinkByName(pai.name);
+		}
+
+		if (pai.type === 'source') {
+			this.props.setDefaultSourceByName(pai.name);
+		}
+	}
+
+	onContextMenuSetAsDefault() {
+		this.setAsDefault(this.state.contexted);
+	}
+
+	hotKeySetAsDefault() {
+		this.setAsDefault(this.state.selected);
 	}
 
 	focus() {
@@ -1176,6 +1261,10 @@ class Graph extends React.Component {
 
 			this.state.contexted && r(GraphContextMenu, {
 				onClose: this.onContextMenuClose,
+
+				canSetAsDefault: this.canContextMenuSetAsDefault,
+				onSetAsDefault: this.onContextMenuSetAsDefault,
+
 				onDelete: this.onContextMenuDelete,
 			}),
 		]));
@@ -1184,6 +1273,8 @@ class Graph extends React.Component {
 
 module.exports = connect(
 	state => ({
+		serverInfo: state.pulse.serverInfo,
+
 		objects: state.pulse.objects,
 		infos: state.pulse.infos,
 
@@ -1195,7 +1286,9 @@ module.exports = connect(
 
 		preferences: state.preferences,
 	}),
-	dispatch => bindActionCreators(merge(pulseActions, iconsActions), dispatch),
+	dispatch => bindActionCreators(omit([
+		'serverInfo',
+	], merge(pulseActions, iconsActions)), dispatch),
 	null,
 	{ withRef: true },
 )(Graph);

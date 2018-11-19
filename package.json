@@ -21,8 +21,8 @@
     ]
   },
   "dependencies": {
-    "@futpib/paclient": "^0.0.7",
-    "@futpib/react-electron-menu": "^0.3.0",
+    "@futpib/paclient": "^0.0.8",
+    "@futpib/react-electron-menu": "^0.3.1",
     "bluebird": "^3.5.3",
     "camelcase": "^5.0.0",
     "d3": "^5.7.0",

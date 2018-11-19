@@ -8,6 +8,7 @@ const { iconThemeNames } = require('../utils/theme');
 const fallbacks = new Map(Object.entries({
 	'audio-card-pci': 'audio-card',
 	'audio-card-usb': 'audio-card',
+	starred: 'starred-symbolic',
 }));
 
 const cache = new Map();

@@ -255,8 +255,16 @@ div[tabindex="-1"]:focus {
 }
 
 .node-name {
+	pointer-events: initial;
+	user-select: none;
+
 	overflow: hidden;
 	text-overflow: ellipsis;
+}
+
+.node-name-icon {
+	height: 1em;
+	vertical-align: text-top;
 }
 
 .volume-thumbnail-ruler-line {

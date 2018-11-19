@@ -80,11 +80,12 @@ module.exports = store => {
 		.on('ready', () => {
 			store.dispatch(pulseActions.ready());
 			pa.subscribe('all');
+
+			getServerInfo();
+
 			things.forEach(({ method, type }) => {
 				pa[method]((err, infos) => {
-					if (err) {
-						throw err;
-					}
+					handleError(err);
 					infos.forEach(info => {
 						const { index } = info;
 						info.type = info.type || type;
@@ -100,7 +101,7 @@ module.exports = store => {
 		})
 		.on('new', (type, index) => {
 			if (type === 'server') {
-				pa.end(); // Reconnect
+				getServerInfo();
 				return;
 			}
 			store.dispatch(pulseActions.new({ type, index }));
@@ -108,7 +109,7 @@ module.exports = store => {
 		})
 		.on('change', (type, index) => {
 			if (type === 'server') {
-				pa.end(); // Reconnect
+				getServerInfo();
 				return;
 			}
 			store.dispatch(pulseActions.change({ type, index }));
@@ -133,6 +134,16 @@ module.exports = store => {
 	});
 
 	reconnect();
+
+	const getServerInfo = () => {
+		pa.getServerInfo((err, info) => {
+			if (err) {
+				handleError(err);
+			} else {
+				store.dispatch(pulseActions.serverInfo(info));
+			}
+		});
+	};
 
 	const handleError = error => {
 		if (!error) {
@@ -226,6 +237,15 @@ module.exports = store => {
 		},
 		[pulseActions.setSourceOutputMuteByIndex]: (state, { payload: { index, muted } }) => {
 			pa.setSourceOutputMuteByIndex(index, muted, handleError);
+			return state;
+		},
+
+		[pulseActions.setDefaultSinkByName]: (state, { payload: { name } }) => {
+			pa.setDefaultSinkByName(name, handleError);
+			return state;
+		},
+		[pulseActions.setDefaultSourceByName]: (state, { payload: { name } }) => {
+			pa.setDefaultSourceByName(name, handleError);
 			return state;
 		},
 	}, null);

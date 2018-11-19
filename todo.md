@@ -1,7 +1,5 @@
 1 exit                      Terminate the daemon
 1 load-module               Load a module (args: name, arguments)
-1 set-default-sink          Set the default sink (args: index|name)
-1 set-default-source        Set the default source (args: index|name)
 2 set-sink-port             Change the port of a sink (args: index|name, port-name)
 2 set-source-port           Change the port of a source (args: index|name, port-name)
 3 describe-module           Describe a module (arg: name)

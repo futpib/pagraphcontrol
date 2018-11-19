@@ -21,6 +21,8 @@ const { things } = require('../constants/pulse');
 const initialState = {
 	state: 'closed',
 
+	serverInfo: {},
+
 	objects: fromPairs(map(({ key }) => [ key, {} ], things)),
 	infos: fromPairs(map(({ key }) => [ key, {} ], things)),
 
@@ -32,6 +34,15 @@ const reducer = combineReducers({
 		[pulse.ready]: always('ready'),
 		[pulse.close]: always('closed'),
 	}, initialState.state),
+
+	serverInfo: handleActions({
+		[pulse.serverInfo]: (state, { payload }) => {
+			return equals(state, payload) ?
+				state :
+				payload;
+		},
+		[pulse.close]: always(initialState.serverInfo),
+	}, initialState.serverInfo),
 
 	objects: combineReducers(fromPairs(map(({ key, type }) => [ key, handleActions({
 		[pulse.new]: (state, { payload }) => {

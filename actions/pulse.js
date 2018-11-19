@@ -14,6 +14,8 @@ module.exports = createActionCreators({
 
 		INFO: null,
 
+		SERVER_INFO: null,
+
 		MOVE_SINK_INPUT: (sinkInputIndex, destSinkIndex) => ({ sinkInputIndex, destSinkIndex }),
 		MOVE_SOURCE_OUTPUT: (sourceOutputIndex, destSourceIndex) => ({ sourceOutputIndex, destSourceIndex }),
 
@@ -41,5 +43,8 @@ module.exports = createActionCreators({
 		SET_SOURCE_MUTE: (index, muted) => ({ index, muted }),
 		SET_SINK_INPUT_MUTE_BY_INDEX: (index, muted) => ({ index, muted }),
 		SET_SOURCE_OUTPUT_MUTE_BY_INDEX: (index, muted) => ({ index, muted }),
+
+		SET_DEFAULT_SINK_BY_NAME: name => ({ name }),
+		SET_DEFAULT_SOURCE_BY_NAME: name => ({ name }),
 	},
 });
