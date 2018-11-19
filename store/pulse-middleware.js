@@ -119,7 +119,7 @@ module.exports = store => {
 			store.dispatch(pulseActions.remove({ type, index }));
 		})
 		.on('error', error => {
-			console.error(error);
+			handleError(error);
 		});
 
 	const reconnect = () => new Bluebird((resolve, reject) => {

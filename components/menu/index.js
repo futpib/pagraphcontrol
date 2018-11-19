@@ -11,15 +11,23 @@ const {
 	Provider,
 } = require('@futpib/react-electron-menu');
 
-const MenuProvider = ({ children }) => r(Provider, { electron }, r(React.Fragment, {}, [
-	r(WindowMenu),
+const MenuProvider = ({ children, ...props }) => r(Provider, { electron }, r(React.Fragment, {}, [
+	r(WindowMenu, props),
 	...[].concat(children),
 ]));
 
-const WindowMenu = () => r(WindowMenuBase, [
+const WindowMenu = ({ openConnectToServerModal }) => r(WindowMenuBase, [
 	r(MenuItem, {
-		label: 'App',
+		label: 'File',
 	}, [
+		r(MenuItem, {
+			label: 'Connect to server...',
+			accelerator: 'CommandOrControl+N',
+			onClick: openConnectToServerModal,
+		}),
+
+		r(MenuItem.Separator),
+
 		r(MenuItem, {
 			label: 'Quit',
 			role: 'quit',

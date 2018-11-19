@@ -26,8 +26,8 @@ const {
 
 const { modules } = require('../../constants/pulse');
 
-const Checkbox = require('../checkbox');
-const Button = require('../button');
+const ConnectToServerModal = require('./connect-to-server');
+const ConfirmationModal = require('./confirmation');
 
 Modal.setAppElement('#root');
 
@@ -35,46 +35,6 @@ Modal.defaultStyles = {
 	overlay: {},
 	content: {},
 };
-
-class ConfirmationModal extends React.PureComponent {
-	render() {
-		const { target, confirmation, onConfirm, onCancel } = this.props;
-
-		return r(Modal, {
-			isOpen: Boolean(confirmation),
-			onRequestClose: onCancel,
-		}, [
-			confirmation === 'unloadModuleByIndex' && r(React.Fragment, [
-				r.h3('Module unload confirmation'),
-
-				target && r.p([
-					'You are about to unload ',
-					r.code(target.name),
-					'.',
-					'This may not be easily undoable and may impair sound playback on your system.',
-				]),
-			]),
-
-			r(Checkbox, {
-				checked: this.props.preferences.doNotAskForConfirmations,
-				onChange: () => this.props.toggle('doNotAskForConfirmations'),
-			}, 'Do not ask for confirmations'),
-
-			r.div({
-				className: 'button-group',
-			}, [
-				r(Button, {
-					onClick: onCancel,
-				}, 'Cancel'),
-
-				r(Button, {
-					onClick: onConfirm,
-					autoFocus: true,
-				}, 'Confirm'),
-			]),
-		]);
-	}
-}
 
 class Modals extends React.PureComponent {
 	constructor(props) {
@@ -84,15 +44,21 @@ class Modals extends React.PureComponent {
 			target: null,
 			confirmation: null,
 			continuation: null,
+
+			connectToServerModalOpen: false,
+
+			actions: {
+				openConnectToServerModal: this.openConnectToServerModal.bind(this),
+			},
 		};
 		this.state = this.initialState;
 
 		this.handleCancel = this.handleCancel.bind(this);
 	}
 
-	static getDerivedStateFromProps(props) {
+	static getDerivedStateFromProps(props, state) {
 		return {
-			actions: mapObjIndexed((f, name) => function (...args) {
+			actions: merge(state.actions, mapObjIndexed((f, name) => function (...args) {
 				const continuation = () => {
 					props[name](...args);
 					this.setState(this.initialState);
@@ -123,8 +89,12 @@ class Modals extends React.PureComponent {
 
 					return null;
 				},
-			}),
+			})),
 		};
+	}
+
+	openConnectToServerModal() {
+		this.setState({ connectToServerModalOpen: true });
 	}
 
 	handleCancel() {
@@ -136,7 +106,7 @@ class Modals extends React.PureComponent {
 		const { actions, target, confirmation, continuation } = this.state;
 
 		return r(React.Fragment, [
-			...children({ actions: map(a => a.bind(this), actions) }),
+			...[].concat(children({ actions: map(a => a.bind(this), actions) })),
 
 			r(ConfirmationModal, {
 				target,
@@ -146,6 +116,11 @@ class Modals extends React.PureComponent {
 
 				preferences,
 				toggle,
+			}),
+
+			r(ConnectToServerModal, {
+				isOpen: this.state.connectToServerModalOpen,
+				onRequestClose: this.handleCancel,
 			}),
 		]);
 	}

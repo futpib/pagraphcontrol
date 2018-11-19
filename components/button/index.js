@@ -14,6 +14,7 @@ const ref = memoizeWith(autoFocus => String(Boolean(autoFocus)), autoFocus => in
 const Button = props => r.button({
 	ref,
 	className: 'button',
+	type: 'button',
 	...props,
 }, props.children);
 
