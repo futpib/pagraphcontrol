@@ -31,8 +31,43 @@ const things = [ {
 	key: 'sourceOutputs',
 } ];
 
+const modules = {
+	'module-alsa-sink': {
+		confirmUnload: true,
+	},
+	'module-alsa-source': {
+		confirmUnload: true,
+	},
+	'module-alsa-card': {
+		confirmUnload: true,
+	},
+	'module-oss': {
+		confirmUnload: true,
+	},
+	'module-solaris': {
+		confirmUnload: true,
+	},
+
+	'module-cli': {
+		confirmUnload: true,
+	},
+	'module-cli-protocol-unix': {
+		confirmUnload: true,
+	},
+	'module-simple-protocol-unix': {
+		confirmUnload: true,
+	},
+	'module-esound-protocol-unix': {
+		confirmUnload: true,
+	},
+	'module-native-protocol-unix': {
+		confirmUnload: true,
+	},
+};
+
 module.exports = {
 	PA_VOLUME_NORM,
 
 	things,
+	modules,
 };

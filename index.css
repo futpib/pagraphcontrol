@@ -37,6 +37,11 @@ div[tabindex="-1"]:focus {
 	top: 1px;
 }
 
+.button-group {
+	display: flex;
+	justify-content: space-between;
+}
+
 .label {
 	user-select: none;
 
@@ -232,6 +237,23 @@ div[tabindex="-1"]:focus {
 .panel > hr {
 	border: none;
 	border-top: 1px solid var(--borders);
+}
+
+.ReactModal__Overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	justify-content : center;
+}
+
+.ReactModal__Content {
+	background: var(--themeBgColor);
+	border: 1px solid var(--borders);
+	padding: 1rem;
 }
 
 .view-wrapper .graph .edge-mouse-handler {

@@ -23,6 +23,7 @@ const initialState = {
 	maxVolume: 1.5,
 	volumeStep: 1 / 20,
 
+	doNotAskForConfirmations: false,
 	showDebugInfo: false,
 };
 

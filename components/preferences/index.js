@@ -155,6 +155,13 @@ class Preferences extends React.Component {
 
 			r.div([
 				r(Checkbox, {
+					checked: this.props.preferences.doNotAskForConfirmations,
+					onChange: () => this.props.actions.toggle('doNotAskForConfirmations'),
+				}, 'Do not ask for confirmations'),
+			]),
+
+			r.div([
+				r(Checkbox, {
 					checked: this.props.preferences.showDebugInfo,
 					onChange: () => this.props.actions.toggle('showDebugInfo'),
 				}, 'Show debug info'),

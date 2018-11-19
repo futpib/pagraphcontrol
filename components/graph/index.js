@@ -907,7 +907,7 @@ class Graph extends React.Component {
 		} else if (
 			(selected.type === 'sink' || selected.type === 'source') &&
 				pai &&
-				typeof pai.moduleIndex === 'number'
+				pai.moduleIndex >= 0
 		) {
 			this.props.unloadModuleByIndex(pai.moduleIndex);
 		}
@@ -1288,6 +1288,7 @@ module.exports = connect(
 	}),
 	dispatch => bindActionCreators(omit([
 		'serverInfo',
+		'unloadModuleByIndex',
 	], merge(pulseActions, iconsActions)), dispatch),
 	null,
 	{ withRef: true },
