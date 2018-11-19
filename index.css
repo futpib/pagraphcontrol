@@ -177,12 +177,21 @@ div[tabindex="-1"]:focus {
 	opacity: 1;
 }
 
+.server-info {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	padding: 1rem;
+	pointer-events: none;
+	opacity: 0.5;
+}
+
 .log {
 	position: absolute;
 	bottom: 0;
 	left: 0;
 	padding: 1rem;
-	overflow: auto;
+	overflow: hidden;
 	pointer-events: none;
 }
 

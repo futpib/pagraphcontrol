@@ -12,6 +12,7 @@ const Graph = require('./components/graph');
 const Cards = require('./components/cards');
 const Preferences = require('./components/preferences');
 const Log = require('./components/log');
+const ServerInfo = require('./components/server-info');
 const { HotKeys } = require('./components/hot-keys');
 const { MenuProvider } = require('./components/menu');
 const Modals = require('./components/modals');
@@ -28,6 +29,7 @@ const Root = () => r(ReduxProvider, {
 	r(Graph, { ref: graphRef, ...actions }),
 	r(Cards, { ref: cardsRef }),
 	r(Preferences, { ref: preferencesRef }),
+	r(ServerInfo),
 	r(Log),
 ]))));
 
