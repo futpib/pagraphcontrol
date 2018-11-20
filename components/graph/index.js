@@ -1079,11 +1079,13 @@ class Graph extends React.Component {
 	}
 
 	_hotKeyVolume(direction) {
-		if (!this.state.selected) {
-			return;
-		}
+		let pai;
 
-		const pai = dgoToPai.get(this.state.selected);
+		if (this.state.selected) {
+			pai = dgoToPai.get(this.state.selected);
+		} else {
+			pai = getDefaultSinkPai({ pulse: this.props });
+		}
 
 		if (!pai) {
 			return;
