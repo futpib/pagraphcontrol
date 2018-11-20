@@ -43,6 +43,3 @@ wercker.yml
 
 # misc
 *.md
-
-# modules
-react-icons
