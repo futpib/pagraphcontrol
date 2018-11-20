@@ -33,6 +33,8 @@ const keyMap = {
 	hotKeyShiftMute: 'shift+space',
 
 	hotKeySetAsDefault: 'f',
+
+	hotKeyAdd: 'a',
 };
 
 class MyHotKeys extends React.Component {

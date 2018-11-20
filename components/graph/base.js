@@ -28,6 +28,9 @@ class GraphView extends GraphViewBase {
 		}
 
 		Object.assign(this, {
+			_super_renderBackground: this.renderBackground,
+			renderBackground: this.constructor.prototype.renderBackground.bind(this),
+
 			_super_handleNodeMove: this.handleNodeMove,
 			handleNodeMove: this.constructor.prototype.handleNodeMove.bind(this),
 
@@ -134,6 +137,18 @@ class GraphView extends GraphViewBase {
 			];
 		}
 		return super.getMouseCoordinates();
+	}
+
+	renderBackground() {
+		const { gridSize, backgroundFillId, renderBackground, onBackgroundMouseDown } = this.props;
+		if (renderBackground) {
+			return renderBackground({
+				gridSize,
+				backgroundFillId,
+				onMouseDown: onBackgroundMouseDown,
+			});
+		}
+		return this._super_renderBackground();
 	}
 
 	getNodeComponent(id, node) {

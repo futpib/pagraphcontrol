@@ -28,6 +28,8 @@ const { modules } = require('../../constants/pulse');
 
 const ConnectToServerModal = require('./connect-to-server');
 const ConfirmationModal = require('./confirmation');
+const NewGraphObjectModal = require('./new-graph-object');
+const LoadModuleModal = require('./load-module');
 
 Modal.setAppElement('#root');
 
@@ -46,9 +48,14 @@ class Modals extends React.PureComponent {
 			continuation: null,
 
 			connectToServerModalOpen: false,
+			newGraphObjectModalOpen: false,
+			loadModuleModalOpen: false,
 
 			actions: {
 				openConnectToServerModal: this.openConnectToServerModal.bind(this),
+
+				openNewGraphObjectModal: this.openNewGraphObjectModal.bind(this),
+				openLoadModuleModal: this.openLoadModuleModal.bind(this),
 			},
 		};
 		this.state = this.initialState;
@@ -97,6 +104,14 @@ class Modals extends React.PureComponent {
 		this.setState({ connectToServerModalOpen: true });
 	}
 
+	openNewGraphObjectModal() {
+		this.setState({ newGraphObjectModalOpen: true });
+	}
+
+	openLoadModuleModal() {
+		this.setState({ loadModuleModalOpen: true });
+	}
+
 	handleCancel() {
 		this.setState(this.initialState);
 	}
@@ -120,6 +135,18 @@ class Modals extends React.PureComponent {
 
 			r(ConnectToServerModal, {
 				isOpen: this.state.connectToServerModalOpen,
+				onRequestClose: this.handleCancel,
+			}),
+
+			r(NewGraphObjectModal, {
+				isOpen: this.state.newGraphObjectModalOpen,
+				onRequestClose: this.handleCancel,
+
+				openLoadModuleModal: this.state.actions.openLoadModuleModal,
+			}),
+
+			r(LoadModuleModal, {
+				isOpen: this.state.loadModuleModalOpen,
 				onRequestClose: this.handleCancel,
 			}),
 		]);

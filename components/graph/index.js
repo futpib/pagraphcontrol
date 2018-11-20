@@ -262,6 +262,19 @@ const renderDefs = () => r(React.Fragment, [
 	}),
 ]);
 
+const renderBackground = ({
+	gridSize = 40960,
+	onMouseDown,
+}) => r.rect({
+	className: 'background',
+	x: -(gridSize || 0) / 4,
+	y: -(gridSize || 0) / 4,
+	width: gridSize,
+	height: gridSize,
+	fill: 'url(#background-pattern)',
+	onMouseDown,
+});
+
 const renderNode = (nodeRef, data, key, selected, hovered) => r({
 	sink: Sink,
 	source: Source,
@@ -562,7 +575,39 @@ const renderEdgeText = state => ({ data: dgo, transform, selected }) => {
 
 const layoutEngine = new LayoutEngine();
 
-class GraphContextMenu extends React.PureComponent {
+class BackgroundContextMenu extends React.PureComponent {
+	render() {
+		return r(PopupMenu, {
+			onClose: this.props.onClose,
+		}, [
+			r(MenuItem, {
+				label: 'Create',
+			}, [
+				r(MenuItem, {
+					label: 'Loopback',
+					onClick: this.props.onLoadModuleLoopback,
+				}),
+
+				r(MenuItem, {
+					label: 'Simultaneous output',
+					onClick: this.props.onLoadModuleCombineSink,
+				}),
+
+				r(MenuItem, {
+					label: 'Null output',
+					onClick: this.props.onLoadModuleNullSink,
+				}),
+			]),
+
+			r(MenuItem, {
+				label: 'Load a module...',
+				onClick: this.props.onLoadModule,
+			}),
+		]);
+	}
+}
+
+class GraphObjectContextMenu extends React.PureComponent {
 	render() {
 		return r(PopupMenu, {
 			onClose: this.props.onClose,
@@ -575,13 +620,15 @@ class GraphContextMenu extends React.PureComponent {
 				r(MenuItem.Separator),
 			]),
 
-			r(MenuItem, {
+			this.props.canDelete() && r(MenuItem, {
 				label: 'Delete',
 				onClick: this.props.onDelete,
 			}),
 		]);
 	}
 }
+
+const backgroundSymbol = Symbol('graph.backgroundSymbol');
 
 class Graph extends React.Component {
 	constructor(props) {
@@ -590,11 +637,14 @@ class Graph extends React.Component {
 		this.state = {
 			selected: null,
 			moved: null,
+			contexted: null,
 		};
 
 		this._requestedIcons = new Set();
 
 		Object.assign(this, {
+			onBackgroundMouseDown: this.onBackgroundMouseDown.bind(this),
+
 			onSelectNode: this.onSelectNode.bind(this),
 			onCreateNode: this.onCreateNode.bind(this),
 			onUpdateNode: this.onUpdateNode.bind(this),
@@ -613,7 +663,12 @@ class Graph extends React.Component {
 			canContextMenuSetAsDefault: this.canContextMenuSetAsDefault.bind(this),
 			onContextMenuSetAsDefault: this.onContextMenuSetAsDefault.bind(this),
 
+			canContextMenuDelete: this.canContextMenuDelete.bind(this),
 			onContextMenuDelete: this.onContextMenuDelete.bind(this),
+
+			onLoadModuleLoopback: this.onLoadModuleLoopback.bind(this),
+			onLoadModuleCombineSink: this.onLoadModuleCombineSink.bind(this),
+			onLoadModuleNullSink: this.onLoadModuleNullSink.bind(this),
 		});
 	}
 
@@ -695,7 +750,7 @@ class Graph extends React.Component {
 
 		let { selected, moved, contexted } = state;
 
-		if (contexted && selected !== contexted) {
+		if (contexted && contexted !== backgroundSymbol && selected !== contexted) {
 			contexted = null;
 		}
 
@@ -709,7 +764,7 @@ class Graph extends React.Component {
 				find(x => x.id === moved.id, edges);
 		}
 
-		if (contexted) {
+		if (contexted && contexted !== backgroundSymbol) {
 			contexted = find(x => x.id === contexted.id, nodes) ||
 				find(x => x.id === contexted.id, edges);
 		}
@@ -763,6 +818,12 @@ class Graph extends React.Component {
 			this.props.getIconPath(icon, 128);
 		}
 		this._requestedIcons.add(icon);
+	}
+
+	onBackgroundMouseDown() {
+		this.setState({
+			contexted: backgroundSymbol,
+		});
 	}
 
 	onSelectNode(selected) {
@@ -916,8 +977,12 @@ class Graph extends React.Component {
 		}
 	}
 
+	canContextMenuDelete() {
+		return this.state.contexted !== backgroundSymbol;
+	}
+
 	onContextMenuDelete() {
-		this.onDelete(this.state.selected);
+		this.onDelete(this.state.contexted);
 	}
 
 	onContextMenuClose() {
@@ -1214,6 +1279,22 @@ class Graph extends React.Component {
 		});
 	}
 
+	hotKeyAdd() {
+		this.props.openNewGraphObjectModal();
+	}
+
+	onLoadModuleLoopback() {
+		this.props.loadModule('module-loopback', '');
+	}
+
+	onLoadModuleCombineSink() {
+		this.props.loadModule('module-combine-sink', '');
+	}
+
+	onLoadModuleNullSink() {
+		this.props.loadModule('module-null-sink', '');
+	}
+
 	render() {
 		const { nodes, edges } = this.state;
 
@@ -1236,6 +1317,8 @@ class Graph extends React.Component {
 				nodeSubtypes: {},
 				edgeTypes: {},
 
+				onBackgroundMouseDown: this.onBackgroundMouseDown,
+
 				onSelectNode: this.onSelectNode,
 				onCreateNode: this.onCreateNode,
 				onUpdateNode: this.onUpdateNode,
@@ -1255,7 +1338,7 @@ class Graph extends React.Component {
 
 				layoutEngine,
 
-				backgroundFillId: '#background-pattern',
+				renderBackground,
 
 				renderDefs,
 
@@ -1266,14 +1349,27 @@ class Graph extends React.Component {
 				renderEdgeText: renderEdgeText(this.props),
 			}),
 
-			this.state.contexted && r(GraphContextMenu, {
-				onClose: this.onContextMenuClose,
+			this.state.contexted && (
+				this.state.contexted === backgroundSymbol ?
+					r(BackgroundContextMenu, {
+						onClose: this.onContextMenuClose,
 
-				canSetAsDefault: this.canContextMenuSetAsDefault,
-				onSetAsDefault: this.onContextMenuSetAsDefault,
+						onLoadModule: this.props.openLoadModuleModal,
 
-				onDelete: this.onContextMenuDelete,
-			}),
+						onLoadModuleLoopback: this.onLoadModuleLoopback,
+						onLoadModuleCombineSink: this.onLoadModuleCombineSink,
+						onLoadModuleNullSink: this.onLoadModuleNullSink,
+					}) :
+					r(GraphObjectContextMenu, {
+						onClose: this.onContextMenuClose,
+
+						canSetAsDefault: this.canContextMenuSetAsDefault,
+						onSetAsDefault: this.onContextMenuSetAsDefault,
+
+						canDelete: this.canContextMenuDelete,
+						onDelete: this.onContextMenuDelete,
+					})
+			),
 		]));
 	}
 }
