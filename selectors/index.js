@@ -4,8 +4,11 @@ const {
 	prop,
 	path,
 	filter,
+	find,
 	indexBy,
 	pickBy,
+	propEq,
+	values,
 } = require('ramda');
 
 const { createSelector } = require('reselect');
@@ -51,6 +54,18 @@ const getDerivedMonitorSources = createSelector(
 	}), filter(source => source.monitorSourceIndex >= 0, sources)),
 );
 
+const getDefaultSourcePai = createSelector(
+	state => state.pulse.infos.sources,
+	state => state.pulse.serverInfo.defaultSourceName,
+	(sources, defaultSourceName) => find(propEq('name', defaultSourceName), values(sources)),
+);
+
+const getDefaultSinkPai = createSelector(
+	state => state.pulse.infos.sinks,
+	state => state.pulse.serverInfo.defaultSinkName,
+	(sinks, defaultSinkName) => find(propEq('name', defaultSinkName), values(sinks)),
+);
+
 module.exports = {
 	getPaiByTypeAndIndex,
 	getDerivedMonitorSources,
@@ -62,4 +77,7 @@ module.exports = {
 	getModuleSourceOutputs,
 
 	getSinkSinkInputs,
+
+	getDefaultSinkPai,
+	getDefaultSourcePai,
 };

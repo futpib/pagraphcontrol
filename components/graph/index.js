@@ -55,6 +55,9 @@ const {
 	getModuleSourceOutputs,
 
 	getSinkSinkInputs,
+
+	getDefaultSinkPai,
+	getDefaultSourcePai,
 } = require('../../selectors');
 
 const {
@@ -980,6 +983,8 @@ class Graph extends React.Component {
 
 	hotKeyMute() {
 		if (!this.state.selected) {
+			const defaultSink = getDefaultSinkPai({ pulse: this.props });
+			this.toggleMute(defaultSink);
 			return;
 		}
 
@@ -994,6 +999,8 @@ class Graph extends React.Component {
 
 	hotKeyShiftMute() {
 		if (!this.state.selected) {
+			const defaultSource = getDefaultSourcePai({ pulse: this.props });
+			this.toggleMute(defaultSource);
 			return;
 		}
 
