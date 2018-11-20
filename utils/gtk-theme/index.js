@@ -39,13 +39,13 @@ const themePaths = [
 	),
 	path.join(
 		process.env.HOME,
-		process.env.XDG_CONFIG_HOME || '.themes',
+		'.themes',
 	),
 	path.join(
 		process.env.HOME,
 		'.local',
 		'share',
-		process.env.XDG_CONFIG_HOME || '.themes',
+		'themes',
 	),
 ];
 
