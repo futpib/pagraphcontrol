@@ -18,7 +18,7 @@
   "scripts": {
     "start": "NODE_ENV=development electron .",
     "test": "xo && nyc ava",
-    "build": "electron-packager --overwrite . pagraphcontrol --platform linux --arch x64 --out dist"
+    "build": "electron-packager --overwrite . pagraphcontrol --platform linux --arch x64 --out dist --asar"
   },
   "xo": {
     "extends": [
