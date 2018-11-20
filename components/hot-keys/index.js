@@ -29,8 +29,12 @@ const keyMap = {
 	hotKeyVolumeDown: [ '/', '9' ],
 	hotKeyVolumeUp: [ '*', '0' ],
 
-	hotKeyMute: 'space',
-	hotKeyShiftMute: 'shift+space',
+	hotKeyMute: [
+		'space',
+		'shift+space',
+		'ctrl+space',
+		'ctrl+shift+space',
+	],
 
 	hotKeySetAsDefault: 'f',
 

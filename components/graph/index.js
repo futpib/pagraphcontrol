@@ -820,10 +820,14 @@ class Graph extends React.Component {
 		this._requestedIcons.add(icon);
 	}
 
-	onBackgroundMouseDown() {
-		this.setState({
-			contexted: backgroundSymbol,
-		});
+	onBackgroundMouseDown(event) {
+		if (event.button === 1) {
+			this.toggleAllMute(this.props.infos.sinks);
+		} else if (event.button === 2) {
+			this.setState({
+				contexted: backgroundSymbol,
+			});
+		}
 	}
 
 	onSelectNode(selected) {
@@ -920,7 +924,7 @@ class Graph extends React.Component {
 		pais.forEach(pai => this.toggleMute(pai, !allMuted));
 	}
 
-	toggleMute(pai, muted = !pai.muted, shift = false) {
+	toggleMute(pai, muted = !pai.muted, sourceBiased = false) {
 		if (pai.muted === muted) {
 			return;
 		}
@@ -930,7 +934,7 @@ class Graph extends React.Component {
 		} else if (pai.type === 'sourceOutput') {
 			this.props.setSourceOutputMuteByIndex(pai.index, muted);
 		} else if (pai.type === 'sink') {
-			if (shift) {
+			if (sourceBiased) {
 				const sinkInputs = getSinkSinkInputs(pai)({ pulse: this.props });
 				this.toggleAllMute(sinkInputs);
 			} else {
@@ -939,7 +943,7 @@ class Graph extends React.Component {
 		} else if (pai.type === 'source') {
 			this.props.setSourceMute(pai.index, muted);
 		} else if (pai.type === 'client') {
-			if (shift) {
+			if (sourceBiased) {
 				const sourceOutputs = getClientSourceOutputs(pai)({ pulse: this.props });
 				this.toggleAllMute(sourceOutputs);
 			} else {
@@ -947,7 +951,7 @@ class Graph extends React.Component {
 				this.toggleAllMute(sinkInputs);
 			}
 		} else if (pai.type === 'module') {
-			if (shift) {
+			if (sourceBiased) {
 				const sourceOutputs = getModuleSourceOutputs(pai)({ pulse: this.props });
 				this.toggleAllMute(sourceOutputs);
 			} else {
@@ -1046,10 +1050,23 @@ class Graph extends React.Component {
 		});
 	}
 
-	hotKeyMute() {
+	hotKeyMute({ shiftKey: sourceBiased, ctrlKey: all }) {
 		if (!this.state.selected) {
-			const defaultSink = getDefaultSinkPai({ pulse: this.props });
-			this.toggleMute(defaultSink);
+			if (sourceBiased) {
+				if (all) {
+					this.toggleAllMute(this.props.infos.sources);
+				} else {
+					const defaultSource = getDefaultSourcePai({ pulse: this.props });
+					this.toggleMute(defaultSource);
+				}
+			} else {
+				if (all) { // eslint-disable-line no-lonely-if
+					this.toggleAllMute(this.props.infos.sinks);
+				} else {
+					const defaultSink = getDefaultSinkPai({ pulse: this.props });
+					this.toggleMute(defaultSink);
+				}
+			}
 			return;
 		}
 
@@ -1059,23 +1076,7 @@ class Graph extends React.Component {
 			return;
 		}
 
-		this.toggleMute(pai);
-	}
-
-	hotKeyShiftMute() {
-		if (!this.state.selected) {
-			const defaultSource = getDefaultSourcePai({ pulse: this.props });
-			this.toggleMute(defaultSource);
-			return;
-		}
-
-		const pai = dgoToPai.get(this.state.selected);
-
-		if (!pai) {
-			return;
-		}
-
-		this.toggleMute(pai, undefined, true);
+		this.toggleMute(pai, undefined, sourceBiased);
 	}
 
 	_hotKeyVolume(direction) {
