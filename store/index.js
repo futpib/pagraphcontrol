@@ -1,7 +1,6 @@
 
 const { createStore, applyMiddleware } = require('redux');
 
-// const { createLogger } = require('redux-logger');
 const { composeWithDevTools } = require('remote-redux-devtools');
 
 const { default: thunkMiddleware } = require('redux-thunk');
@@ -27,7 +26,6 @@ module.exports = (state = initialState) => {
 		thunkMiddleware,
 		createPromiseMiddleware(),
 		pulseMiddleware,
-		// dev && createLogger(),
 	].filter(Boolean);
 
 	const reducer_ = persistReducer(persistConfig, reducer);
@@ -37,7 +35,6 @@ module.exports = (state = initialState) => {
 		state,
 		composeWithDevTools({
 			realtime: dev,
-			// hostname: 'localhost', port: 8000,
 		})(applyMiddleware(...middlewares)),
 	);
 

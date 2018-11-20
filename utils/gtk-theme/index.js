@@ -54,10 +54,8 @@ let css = '';
 for (const themePath of themePaths) {
 	const themeNamePath = path.join(themePath, themeName);
 
-	let dir;
-
 	try {
-		dir = fs.readdirSync(themeNamePath);
+		fs.readdirSync(themeNamePath);
 	} catch (error) {
 		if (error.code === 'ENOENT') {
 			continue;
