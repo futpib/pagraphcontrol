@@ -1079,23 +1079,7 @@ class Graph extends React.Component {
 		this.toggleMute(pai, undefined, sourceBiased);
 	}
 
-	_hotKeyVolume(direction) {
-		let pai;
-
-		if (this.state.selected) {
-			pai = dgoToPai.get(this.state.selected);
-		} else {
-			pai = getDefaultSinkPai({ pulse: this.props });
-		}
-
-		if (!pai) {
-			return;
-		}
-
-		if (![ 'sink', 'source', 'sinkInput', 'sourceOutput' ].includes(pai.type)) {
-			return;
-		}
-
+	_volume(pai, direction) {
 		const { lockChannelsTogether, maxVolume, volumeStep } = this.props.preferences;
 
 		const d = direction === 'up' ? 1 : -1;
@@ -1119,6 +1103,41 @@ class Graph extends React.Component {
 		} else if (pai.type === 'sourceOutput') {
 			this.props.setSourceOutputVolumes(pai.index, newVolumes);
 		}
+	}
+
+	_volumeAll(pais, direction) {
+		forEach(pai => this._volume(pai, direction), values(pais));
+	}
+
+	_hotKeyVolume(direction) {
+		let pai;
+
+		if (this.state.selected) {
+			pai = dgoToPai.get(this.state.selected);
+		} else {
+			pai = getDefaultSinkPai({ pulse: this.props });
+		}
+
+		if (!pai) {
+			return;
+		}
+
+		if (pai.type === 'client') {
+			const sinkInputs = getClientSinkInputs(pai)({ pulse: this.props });
+			this._volumeAll(sinkInputs, direction);
+			return;
+		}
+		if (pai.type === 'module') {
+			const sinkInputs = getModuleSinkInputs(pai)({ pulse: this.props });
+			this._volumeAll(sinkInputs, direction);
+			return;
+		}
+
+		if (![ 'sink', 'source', 'sinkInput', 'sourceOutput' ].includes(pai.type)) {
+			return;
+		}
+
+		this._volume(pai, direction);
 	}
 
 	hotKeyVolumeDown() {
