@@ -51,6 +51,8 @@ class Modals extends React.PureComponent {
 			newGraphObjectModalOpen: false,
 			loadModuleModalOpen: false,
 
+			modalDefaults: undefined,
+
 			actions: {
 				openConnectToServerModal: this.openConnectToServerModal.bind(this),
 
@@ -108,8 +110,11 @@ class Modals extends React.PureComponent {
 		this.setState({ newGraphObjectModalOpen: true });
 	}
 
-	openLoadModuleModal() {
-		this.setState({ loadModuleModalOpen: true });
+	openLoadModuleModal(modalDefaults) {
+		this.setState({
+			loadModuleModalOpen: true,
+			modalDefaults,
+		});
 	}
 
 	handleCancel() {
@@ -145,9 +150,11 @@ class Modals extends React.PureComponent {
 				openLoadModuleModal: this.state.actions.openLoadModuleModal,
 			}),
 
-			r(LoadModuleModal, {
-				isOpen: this.state.loadModuleModalOpen,
+			this.state.loadModuleModalOpen && r(LoadModuleModal, {
+				isOpen: true,
 				onRequestClose: this.handleCancel,
+
+				defaults: this.state.modalDefaults,
 			}),
 		]);
 	}

@@ -42,6 +42,10 @@ const WindowMenu = props => r(WindowMenuBase, [
 			onClick: props.focusCards,
 		}),
 		r(MenuItem, {
+			label: 'Network',
+			onClick: props.focusNetwork,
+		}),
+		r(MenuItem, {
 			label: 'Preferences',
 			onClick: props.focusPreferences,
 		}),

@@ -89,14 +89,9 @@ class Cards extends React.Component {
 					fontSize: '0.75em',
 				},
 			}, [
-				JSON.stringify(this.props, null, 2),
+				JSON.stringify(this.props.cards, null, 2),
 			]),
-		] : [
-			!this.props.preferences.hideOnScreenButtons && r(Button, {
-				autoFocus: true,
-				onClick: toggle,
-			}, 'Cards'),
-		]);
+		] : []);
 	}
 }
 

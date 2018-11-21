@@ -16,6 +16,7 @@ const keyMap = {
 	hotKeyEscape: 'escape',
 
 	hotKeyFocusCards: 'c',
+	hotKeyFocusNetwork: 'n',
 	hotKeyFocusGraph: 'g',
 	hotKeyFocusPreferences: 'p',
 
@@ -47,6 +48,7 @@ class MyHotKeys extends React.Component {
 
 		this.graphRef = React.createRef();
 		this.cardsRef = React.createRef();
+		this.networkRef = React.createRef();
 		this.preferencesRef = React.createRef();
 	}
 
@@ -54,7 +56,15 @@ class MyHotKeys extends React.Component {
 		this.hotKeyFocusGraph();
 	}
 
+	hotKeyFocusGraph() {
+		this.cardsRef.current.getWrappedInstance().close();
+		this.networkRef.current.getWrappedInstance().close();
+		this.preferencesRef.current.getWrappedInstance().close();
+		this.graphRef.current.getWrappedInstance().focus();
+	}
+
 	hotKeyFocusCards() {
+		this.networkRef.current.getWrappedInstance().close();
 		this.preferencesRef.current.getWrappedInstance().close();
 
 		const cards = this.cardsRef.current.getWrappedInstance();
@@ -64,14 +74,20 @@ class MyHotKeys extends React.Component {
 		}
 	}
 
-	hotKeyFocusGraph() {
+	hotKeyFocusNetwork() {
 		this.cardsRef.current.getWrappedInstance().close();
 		this.preferencesRef.current.getWrappedInstance().close();
-		this.graphRef.current.getWrappedInstance().focus();
+
+		const network = this.networkRef.current.getWrappedInstance();
+		network.toggle();
+		if (!network.isOpen()) {
+			this.graphRef.current.getWrappedInstance().focus();
+		}
 	}
 
 	hotKeyFocusPreferences() {
 		this.cardsRef.current.getWrappedInstance().close();
+		this.networkRef.current.getWrappedInstance().close();
 
 		const preferences = this.preferencesRef.current.getWrappedInstance();
 		preferences.toggle();
@@ -92,11 +108,13 @@ class MyHotKeys extends React.Component {
 		}, this.props.children({
 			graphRef: this.graphRef,
 			cardsRef: this.cardsRef,
+			networkRef: this.networkRef,
 			preferencesRef: this.preferencesRef,
 
 			actions: {
 				focusGraph: handlers.hotKeyFocusGraph,
 				focusCards: handlers.hotKeyFocusCards,
+				focusNetwork: handlers.hotKeyFocusNetwork,
 				focusPreferences: handlers.hotKeyFocusPreferences,
 			},
 		}));

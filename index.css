@@ -50,6 +50,13 @@ div[tabindex="-1"]:focus {
 	display: block;
 	padding: 0.5rem 0;
 }
+.label-user-select {
+	user-select: initial;
+	cursor: text;
+}
+.label-passive {
+	cursor: initial;
+}
 
 .checkbox {
 }
@@ -235,7 +242,7 @@ div[tabindex="-1"]:focus {
 	pointer-events: none;
 }
 
-.panel:not(.open) > * {
+.panel:not(.open) .button {
 	pointer-events: initial;
 }
 
@@ -246,6 +253,10 @@ div[tabindex="-1"]:focus {
 .panel > hr {
 	border: none;
 	border-top: 1px solid var(--borders);
+}
+
+.top-left-on-screen-button-group .button {
+	margin-right: 1rem;
 }
 
 .ReactModal__Overlay {
@@ -263,6 +274,7 @@ div[tabindex="-1"]:focus {
 	background: var(--themeBgColor);
 	border: 1px solid var(--borders);
 	padding: 1rem;
+	width: 400px;
 }
 
 .view-wrapper .graph .edge-mouse-handler {
@@ -285,6 +297,15 @@ div[tabindex="-1"]:focus {
 	background-position: center;
 }
 
+.node-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.node-text > .volume-thumbnail {
+	flex-grow: 1;
+}
+
 .node-name {
 	pointer-events: initial;
 	user-select: none;
@@ -296,6 +317,10 @@ div[tabindex="-1"]:focus {
 .node-name-icon {
 	height: 1em;
 	vertical-align: text-top;
+}
+
+.node-tunnel-info {
+	text-align: right;
 }
 
 .volume-thumbnail-ruler-line {

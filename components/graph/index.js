@@ -452,16 +452,36 @@ const Icon = ({ state, name, ...props }) => {
 	});
 };
 
-const DebugText = ({ dgo, pai, state }) => r.div({
-	style: {
-		fontSize: '50%',
-	},
-}, state.preferences.showDebugInfo ? [
-	JSON.stringify(dgo, null, 2),
-	JSON.stringify(pai, null, 2),
-] : []);
+const RemoteTunnelInfo = ({ pai }) => {
+	const fqdn = path([ 'properties', 'tunnel', 'remote', 'fqdn' ], pai);
 
-const SinkText = ({ dgo, pai, state, selected }) => r.div([
+	if (!fqdn) {
+		return r(React.Fragment);
+	}
+
+	return r.div({
+		className: 'node-tunnel-info',
+	}, [
+		fqdn,
+	]);
+};
+
+const DebugText = ({ dgo, pai, state }) => {
+	if (!state.preferences.showDebugInfo) {
+		return r(React.Fragment);
+	}
+
+	return r.div({
+		style: {
+			fontSize: '50%',
+		},
+	}, [
+		JSON.stringify(dgo, null, 2),
+		JSON.stringify(pai, null, 2),
+	]);
+};
+
+const SinkText = ({ dgo, pai, state, selected }) => r(React.Fragment, [
 	r.div({
 		className: 'node-name',
 	}, [
@@ -479,10 +499,11 @@ const SinkText = ({ dgo, pai, state, selected }) => r.div([
 	]),
 	!selected && r(VolumeThumbnail, { pai, state }),
 	selected && r(VolumeControls, { pai, state }),
+	r(RemoteTunnelInfo, { pai }),
 	r(DebugText, { dgo, pai, state }),
 ]);
 
-const SourceText = ({ dgo, pai, state, selected }) => r.div([
+const SourceText = ({ dgo, pai, state, selected }) => r(React.Fragment, [
 	r.div({
 		className: 'node-name',
 	}, [
@@ -500,10 +521,11 @@ const SourceText = ({ dgo, pai, state, selected }) => r.div([
 	]),
 	!selected && r(VolumeThumbnail, { pai, state }),
 	selected && r(VolumeControls, { pai, state }),
+	r(RemoteTunnelInfo, { pai }),
 	r(DebugText, { dgo, pai, state }),
 ]);
 
-const ClientText = ({ dgo, pai, state }) => r.div([
+const ClientText = ({ dgo, pai, state }) => r(React.Fragment, [
 	r.div({
 		className: 'node-name',
 		title: path('properties.application.process.binary'.split('.'), pai),
@@ -511,7 +533,7 @@ const ClientText = ({ dgo, pai, state }) => r.div([
 	r(DebugText, { dgo, pai, state }),
 ]);
 
-const ModuleText = ({ dgo, pai, state }) => r.div([
+const ModuleText = ({ dgo, pai, state }) => r(React.Fragment, [
 	r.div({
 		className: 'node-name',
 		title: pai.properties.module.description,

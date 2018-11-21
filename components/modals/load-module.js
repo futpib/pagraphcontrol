@@ -21,8 +21,8 @@ class LoadModuleModal extends React.PureComponent {
 		super(props);
 
 		this.state = {
-			name: '',
-			args: '',
+			name: props.defaults.name,
+			args: props.defaults.args,
 		};
 
 		this.handleSubmit = this.handleSubmit.bind(this);
@@ -86,6 +86,13 @@ class LoadModuleModal extends React.PureComponent {
 		]);
 	}
 }
+
+LoadModuleModal.defaultProps = {
+	defaults: {
+		name: '',
+		args: '',
+	},
+};
 
 module.exports = connect(
 	null,
