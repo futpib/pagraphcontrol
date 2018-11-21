@@ -525,13 +525,22 @@ const SourceText = ({ dgo, pai, state, selected }) => r(React.Fragment, [
 	r(DebugText, { dgo, pai, state }),
 ]);
 
-const ClientText = ({ dgo, pai, state }) => r(React.Fragment, [
-	r.div({
-		className: 'node-name',
-		title: path('properties.application.process.binary'.split('.'), pai),
-	}, pai.name),
-	r(DebugText, { dgo, pai, state }),
-]);
+const ClientText = ({ dgo, pai, state }) => {
+	let title = path('properties.application.process.binary'.split('.'), pai);
+
+	const module = state.infos.modules[pai.moduleIndex];
+	if (module && module.name === 'module-native-protocol-tcp') {
+		title = path([ 'properties', 'native-protocol', 'peer' ], pai) || title;
+	}
+
+	return r(React.Fragment, [
+		r.div({
+			className: 'node-name',
+			title,
+		}, pai.name),
+		r(DebugText, { dgo, pai, state }),
+	]);
+};
 
 const ModuleText = ({ dgo, pai, state }) => r(React.Fragment, [
 	r.div({
