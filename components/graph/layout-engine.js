@@ -91,7 +91,8 @@ module.exports = class LayoutEngine {
 			node.y = offsetY + (direction * (Math.floor(columnHeight / 2) - 1) * (size + margin));
 
 			let intersected = true;
-			while (intersected) {
+			let iterations = 0;
+			while (intersected && iterations < 10) {
 				intersected = false;
 				for (const otherNode of nodes) {
 					if (otherNode.type === 'satellite') {
@@ -101,6 +102,8 @@ module.exports = class LayoutEngine {
 					if (otherNode === node) {
 						continue;
 					}
+
+					iterations += 1;
 
 					if (this.nodesIntersect(node, otherNode)) {
 						node.y += direction * (size + margin);
