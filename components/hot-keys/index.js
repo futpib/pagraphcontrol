@@ -85,13 +85,20 @@ class MyHotKeys extends React.Component {
 	}
 
 	render() {
+		const handlers = map(f => bind(f, this), pick(keys(keyMap), this));
 		return r(HotKeys, {
 			keyMap,
-			handlers: map(f => bind(f, this), pick(keys(keyMap), this)),
+			handlers,
 		}, this.props.children({
 			graphRef: this.graphRef,
 			cardsRef: this.cardsRef,
 			preferencesRef: this.preferencesRef,
+
+			actions: {
+				focusGraph: handlers.hotKeyFocusGraph,
+				focusCards: handlers.hotKeyFocusCards,
+				focusPreferences: handlers.hotKeyFocusPreferences,
+			},
 		}));
 	}
 }

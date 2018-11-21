@@ -22,11 +22,12 @@ const theme = require('./utils/theme');
 const Root = () => r(ReduxProvider, {
 	store: createStore(),
 }, r(HotKeys, {
-}, ({ graphRef, cardsRef, preferencesRef }) => r(Modals, {
-}, ({ actions }) => r(MenuProvider, {
-	...actions,
+}, ({ graphRef, cardsRef, preferencesRef, actions: hotKeysActions }) => r(Modals, {
+}, ({ actions: modalsActions }) => r(MenuProvider, {
+	...modalsActions,
+	...hotKeysActions,
 }, [
-	r(Graph, { ref: graphRef, ...actions }),
+	r(Graph, { ref: graphRef, ...modalsActions }),
 	r(Cards, { ref: cardsRef }),
 	r(Preferences, { ref: preferencesRef }),
 	r(ServerInfo),

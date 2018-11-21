@@ -16,14 +16,14 @@ const MenuProvider = ({ children, ...props }) => r(Provider, { electron }, r(Rea
 	...[].concat(children),
 ]));
 
-const WindowMenu = ({ openConnectToServerModal }) => r(WindowMenuBase, [
+const WindowMenu = props => r(WindowMenuBase, [
 	r(MenuItem, {
 		label: 'File',
 	}, [
 		r(MenuItem, {
 			label: 'Connect to server...',
 			accelerator: 'CommandOrControl+N',
-			onClick: openConnectToServerModal,
+			onClick: props.openConnectToServerModal,
 		}),
 
 		r(MenuItem.Separator),
@@ -37,6 +37,17 @@ const WindowMenu = ({ openConnectToServerModal }) => r(WindowMenuBase, [
 	r(MenuItem, {
 		label: 'View',
 	}, [
+		r(MenuItem, {
+			label: 'Cards',
+			onClick: props.focusCards,
+		}),
+		r(MenuItem, {
+			label: 'Preferences',
+			onClick: props.focusPreferences,
+		}),
+
+		r(MenuItem.Separator),
+
 		r(MenuItem, {
 			label: 'Reload',
 			role: 'reload',

@@ -8,6 +8,8 @@ const { handleActions } = require('redux-actions');
 const { preferences } = require('../actions');
 
 const initialState = {
+	hideOnScreenButtons: false,
+
 	hideDisconnectedClients: true,
 	hideDisconnectedModules: true,
 	hideDisconnectedSources: false,

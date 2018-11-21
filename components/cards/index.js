@@ -51,15 +51,15 @@ class Cards extends React.Component {
 				open,
 			},
 		}, open ? [
-			r.div([
+			!this.props.preferences.hideOnScreenButtons && r(React.Fragment, [
 				r(Button, {
 					style: { width: '100%' },
 					autoFocus: true,
 					onClick: toggle,
 				}, 'Close'),
-			]),
 
-			r.hr(),
+				r.hr(),
+			]),
 
 			...map(card => r(Label, {
 				title: card.name,
@@ -92,7 +92,7 @@ class Cards extends React.Component {
 				JSON.stringify(this.props, null, 2),
 			]),
 		] : [
-			r(Button, {
+			!this.props.preferences.hideOnScreenButtons && r(Button, {
 				autoFocus: true,
 				onClick: toggle,
 			}, 'Cards'),

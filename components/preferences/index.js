@@ -58,15 +58,15 @@ class Preferences extends React.Component {
 				open,
 			},
 		}, open ? [
-			r.div([
+			!this.props.preferences.hideOnScreenButtons && r(React.Fragment, [
 				r(Button, {
 					style: { width: '100%' },
 					autoFocus: true,
 					onClick: toggle,
 				}, 'Close'),
-			]),
 
-			r.hr(),
+				r.hr(),
+			]),
 
 			r.div([
 				r(Checkbox, {
@@ -155,6 +155,13 @@ class Preferences extends React.Component {
 
 			r.div([
 				r(Checkbox, {
+					checked: this.props.preferences.hideOnScreenButtons,
+					onChange: () => this.props.actions.toggle('hideOnScreenButtons'),
+				}, 'Hide on-screen buttons'),
+			]),
+
+			r.div([
+				r(Checkbox, {
 					checked: this.props.preferences.doNotAskForConfirmations,
 					onChange: () => this.props.actions.toggle('doNotAskForConfirmations'),
 				}, 'Do not ask for confirmations'),
@@ -176,7 +183,7 @@ class Preferences extends React.Component {
 				}, 'Reset to defaults'),
 			]),
 		] : [
-			r(Button, {
+			!this.props.preferences.hideOnScreenButtons && r(Button, {
 				autoFocus: true,
 				onClick: toggle,
 			}, 'Preferences'),
