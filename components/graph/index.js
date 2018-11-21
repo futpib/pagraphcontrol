@@ -23,6 +23,8 @@ const {
 	repeat,
 	sortBy,
 	values,
+	scan,
+	range,
 } = require('ramda');
 
 const React = require('react');
@@ -1208,11 +1210,12 @@ class Graph extends React.Component {
 			return;
 		}
 
-		const type0 = selected.type;
-		const type1 = selectionObjectTypes[direction](
-			selectionObjectTypes.fromPulseType(type0),
+		const next = t => selectionObjectTypes[direction](t);
+		const types = scan(
+			next,
+			next(selectionObjectTypes.fromPulseType(selected.type)),
+			range(0, 3)
 		);
-		const type2 = selectionObjectTypes[direction](type1);
 
 		const bestSelectionPredicate = x => null ||
 			x.source === selected.id ||
@@ -1221,10 +1224,7 @@ class Graph extends React.Component {
 			selected.target === x.id;
 
 		this.setState({
-			selected: this._findAnyObjectForSelection([
-				type1,
-				type2,
-			], bestSelectionPredicate),
+			selected: this._findAnyObjectForSelection(types, bestSelectionPredicate),
 		});
 	}
 
