@@ -302,7 +302,7 @@ div[tabindex="-1"]:focus {
 	flex-direction: column;
 }
 
-.node-text > .volume-thumbnail {
+.node-text > .node-main {
 	flex-grow: 1;
 }
 

@@ -497,8 +497,13 @@ const SinkText = ({ dgo, pai, state, selected }) => r(React.Fragment, [
 			title: pai.name,
 		}, pai.description),
 	]),
-	!selected && r(VolumeThumbnail, { pai, state }),
-	selected && r(VolumeControls, { pai, state }),
+
+	r.div({
+		className: 'node-main',
+	}, [
+		r(selected ? VolumeControls : VolumeThumbnail, { pai, state }),
+	]),
+
 	r(RemoteTunnelInfo, { pai }),
 	r(DebugText, { dgo, pai, state }),
 ]);
@@ -519,8 +524,13 @@ const SourceText = ({ dgo, pai, state, selected }) => r(React.Fragment, [
 			title: pai.name,
 		}, pai.description),
 	]),
-	!selected && r(VolumeThumbnail, { pai, state }),
-	selected && r(VolumeControls, { pai, state }),
+
+	r.div({
+		className: 'node-main',
+	}, [
+		r(selected ? VolumeControls : VolumeThumbnail, { pai, state }),
+	]),
+
 	r(RemoteTunnelInfo, { pai }),
 	r(DebugText, { dgo, pai, state }),
 ]);
