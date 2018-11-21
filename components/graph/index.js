@@ -758,6 +758,7 @@ class Graph extends React.Component {
 					const name = path([ 'properties', 'application', 'name' ], pai) || '';
 					if (binary.startsWith('pavucontrol') ||
 						binary.startsWith('kmix') ||
+						binary === 'pulseaudio' ||
 						name === 'paclient.js'
 					) {
 						return false;

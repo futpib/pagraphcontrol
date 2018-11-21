@@ -116,6 +116,7 @@ class Preferences extends React.Component {
 				r(Checkbox, {
 					checked: this.props.preferences.hidePulseaudioApps,
 					onChange: () => this.props.actions.toggle('hidePulseaudioApps'),
+					title: 'Including volume control apps and some internal machinery',
 				}, 'Hide pulseaudio applications'),
 			]),
 
