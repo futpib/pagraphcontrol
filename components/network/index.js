@@ -24,19 +24,19 @@ const {
 } = require('../../actions');
 const { formatModuleArgs } = require('../../utils/module-args');
 
-const { getRemoteServerByAddress } = require('../../selectors');
+const { primaryPulseServer } = require('../../reducers/pulse');
 
 const Button = require('../button');
 const Label = require('../label');
 
 const RemoteServer = connect(
 	(state, props) => ({
-		remoteServer: getRemoteServerByAddress(props.address)(state),
+		remoteServer: state.pulse[props.address],
 	}),
 	dispatch => ({
 		actions: bindActionCreators(merge(pulseActions, preferencesActions), dispatch),
 	}),
-)(({ address, remoteServer = {}, actions }) => {
+)(({ address, remoteServer = {}, actions, ...props }) => {
 	const { targetState, state } = remoteServer;
 	const hostname = path([ 'serverInfo', 'hostname' ], remoteServer);
 
@@ -44,35 +44,53 @@ const RemoteServer = connect(
 		r.div({
 			style: { display: 'flex', justifyContent: 'space-between' },
 		}, [
-			r(Label, {
-				userSelect: true,
-			}, [
-				hostname || address,
+			r.div([
+				r.div([ hostname ]),
+				r.code(address),
 			]),
 
-			targetState === 'ready' ? r(Button, {
-				onClick: () => {
-					actions.remoteServerDisconnect(address);
-				},
-			}, 'Disconnect') : r(React.Fragment, [
+			r.div([
 				r(Button, {
 					onClick: () => {
-						actions.remoteServerDisconnect(address);
-						actions.setDelete('remoteServerAddresses', address);
+						props.openConnectToServerModal({ address });
 					},
-				}, 'Forget'),
+				}, 'Open'),
 
-				r(Button, {
+				' ',
+
+				targetState === 'ready' ? r(Button, {
 					onClick: () => {
-						actions.remoteServerConnect(address);
+						actions.disconnect(address);
 					},
-				}, 'Connect'),
+				}, 'Disconnect') : r(React.Fragment, [
+					r(Button, {
+						onClick: () => {
+							actions.disconnect(address);
+							actions.setDelete('remoteServerAddresses', address);
+						},
+					}, 'Forget'),
+
+					' ',
+
+					r(Button, {
+						onClick: () => {
+							actions.connect(address);
+						},
+					}, 'Connect'),
+				]),
 			]),
 		]),
 
-		state === 'ready' ? r(React.Fragment, [
-			// TODO
-		]) : targetState === 'ready' ? r(Label, [
+		state === 'ready' ? r(Label, {
+			passive: true,
+		}, [
+			keys(remoteServer.objects.sinks).length,
+			' sinks and ',
+			keys(remoteServer.objects.sources).length,
+			' sources.',
+		]) : targetState === 'ready' ? r(Label, {
+			passive: true,
+		}, [
 			'Connecting...',
 		]) : null,
 	]);
@@ -188,7 +206,10 @@ class Cards extends React.Component {
 					'Remote servers:',
 				]),
 
-				...map(address => r(RemoteServer, { address }), remoteServerAddresses),
+				...map(address => r(RemoteServer, {
+					address,
+					openConnectToServerModal: this.props.openConnectToServerModal,
+				}), remoteServerAddresses),
 			]) : r(Label, [
 				'No known servers',
 			]),
@@ -212,7 +233,7 @@ class Cards extends React.Component {
 
 module.exports = connect(
 	state => ({
-		modules: state.pulse.infos.modules,
+		modules: state.pulse[primaryPulseServer].infos.modules,
 		preferences: state.preferences,
 	}),
 	dispatch => ({

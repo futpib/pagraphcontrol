@@ -2,6 +2,7 @@
 const {
 	map,
 	toPairs,
+	fromPairs,
 } = require('ramda');
 
 const separators = {
@@ -18,4 +19,10 @@ const formatModuleArgs = object => map(([ k, v ]) => {
 	return `${k}=${v}`;
 }, toPairs(object)).join(' ');
 
-module.exports = { formatModuleArgs };
+const parseModuleArgs = (args = '') => fromPairs(args.split(' ').map(arg => {
+	const [ key, ...value ] = arg.split('=');
+	// TODO: `separators`
+	return [ key, value.join('=') ];
+}));
+
+module.exports = { formatModuleArgs, parseModuleArgs };

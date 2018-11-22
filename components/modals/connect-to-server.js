@@ -20,7 +20,7 @@ class ConnectToServerModal extends React.PureComponent {
 		super(props);
 
 		this.state = {
-			value: 'tcp:remote-computer.lan',
+			address: props.defaults.address,
 		};
 
 		this.handleSubmit = this.handleSubmit.bind(this);
@@ -33,7 +33,7 @@ class ConnectToServerModal extends React.PureComponent {
 			detached: true,
 			stdio: 'ignore',
 			env: merge(process.env, {
-				PULSE_SERVER: this.state.value,
+				PULSE_SERVER: this.state.address,
 			}),
 		});
 
@@ -62,8 +62,8 @@ class ConnectToServerModal extends React.PureComponent {
 						r(Input, {
 							style: { width: '100%' },
 							autoFocus: true,
-							value: this.state.value,
-							onChange: e => this.setState({ value: e.target.value }),
+							value: this.state.address,
+							onChange: e => this.setState({ address: e.target.value }),
 						}),
 					]),
 				]),
@@ -83,5 +83,11 @@ class ConnectToServerModal extends React.PureComponent {
 		]);
 	}
 }
+
+ConnectToServerModal.defaultProps = {
+	defaults: {
+		address: 'tcp:remote-computer.lan',
+	},
+};
 
 module.exports = ConnectToServerModal;

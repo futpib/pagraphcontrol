@@ -1,8 +1,4 @@
 
-const {
-	map,
-} = require('ramda');
-
 const r = require('r-dom');
 
 const { connect } = require('react-redux');

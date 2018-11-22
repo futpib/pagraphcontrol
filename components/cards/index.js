@@ -15,6 +15,8 @@ const { bindActionCreators } = require('redux');
 
 const { pulse: pulseActions } = require('../../actions');
 
+const { primaryPulseServer } = require('../../reducers/pulse');
+
 const Button = require('../button');
 const Label = require('../label');
 const Select = require('../select');
@@ -97,7 +99,7 @@ class Cards extends React.Component {
 
 module.exports = connect(
 	state => ({
-		cards: state.pulse.infos.cards,
+		cards: state.pulse[primaryPulseServer].infos.cards,
 		preferences: state.preferences,
 	}),
 	dispatch => ({

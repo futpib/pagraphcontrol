@@ -1,20 +1,39 @@
 
+const { map } = require('ramda');
+
 const { createActions: createActionCreators } = require('redux-actions');
 
+const withMetaPulseServerId = payloadCreator => {
+	const metaCreator = (...args) => ({
+		pulseServerId: args[payloadCreator.length],
+	});
+
+	return [
+		payloadCreator,
+		metaCreator,
+	];
+};
+
+const noop = () => null;
+const identity = x => x;
+
 module.exports = createActionCreators({
-	PULSE: {
-		READY: null,
-		CLOSE: null,
+	PULSE: map(withMetaPulseServerId, {
+		READY: noop,
+		CLOSE: noop,
 
-		ERROR: null,
+		CONNECT: noop,
+		DISCONNECT: noop,
 
-		NEW: null,
-		CHANGE: null,
-		REMOVE: null,
+		ERROR: identity,
 
-		INFO: null,
+		NEW: identity,
+		CHANGE: identity,
+		REMOVE: identity,
 
-		SERVER_INFO: null,
+		INFO: identity,
+
+		SERVER_INFO: identity,
 
 		MOVE_SINK_INPUT: (sinkInputIndex, destSinkIndex) => ({ sinkInputIndex, destSinkIndex }),
 		MOVE_SOURCE_OUTPUT: (sourceOutputIndex, destSourceIndex) => ({ sourceOutputIndex, destSourceIndex }),
@@ -46,8 +65,5 @@ module.exports = createActionCreators({
 
 		SET_DEFAULT_SINK_BY_NAME: name => ({ name }),
 		SET_DEFAULT_SOURCE_BY_NAME: name => ({ name }),
-
-		REMOTE_SERVER_CONNECT: null,
-		REMOTE_SERVER_DISCONNECT: null,
-	},
+	}),
 });

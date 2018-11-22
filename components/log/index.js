@@ -19,6 +19,8 @@ const weakmapId = require('../../utils/weakmap-id');
 
 const { pulse: pulseActions } = require('../../actions');
 
+const { primaryPulseServer } = require('../../reducers/pulse');
+
 const actionTypeText = {
 	[pulseActions.ready]: 'Connected to PulseAudio',
 	[pulseActions.close]: 'Disconnected from PulseAudio',
@@ -84,6 +86,6 @@ Log.defaultProps = {
 
 module.exports = connect(
 	state => ({
-		log: state.pulse.log,
+		log: state.pulse[primaryPulseServer].log,
 	}),
 )(Log);

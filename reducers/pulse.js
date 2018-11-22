@@ -9,7 +9,7 @@ const {
 	equals,
 	takeLast,
 	over,
-	lensPath,
+	lensProp,
 } = require('ramda');
 
 const { combineReducers } = require('redux');
@@ -20,8 +20,11 @@ const { pulse } = require('../actions');
 
 const { things } = require('../constants/pulse');
 
-const initialState = {
+const primaryPulseServer = '__PRIMARY_PULSE_SERVER__';
+
+const serverInitialState = {
 	state: 'closed',
+	targetState: 'closed',
 
 	serverInfo: {},
 
@@ -29,17 +32,22 @@ const initialState = {
 	infos: fromPairs(map(({ key }) => [ key, {} ], things)),
 
 	log: { items: [] },
-
-	remoteServers: {},
 };
+
+const initialState = {};
 
 const logMaxItems = 3;
 
-const reducer = combineReducers({
+const serverReducer = combineReducers({
 	state: handleActions({
 		[pulse.ready]: always('ready'),
 		[pulse.close]: always('closed'),
-	}, initialState.state),
+	}, serverInitialState.state),
+
+	targetState: handleActions({
+		[pulse.connect]: always('ready'),
+		[pulse.disconnect]: always('closed'),
+	}, serverInitialState.targetState),
 
 	serverInfo: handleActions({
 		[pulse.serverInfo]: (state, { payload }) => {
@@ -47,8 +55,8 @@ const reducer = combineReducers({
 				state :
 				payload;
 		},
-		[pulse.close]: always(initialState.serverInfo),
-	}, initialState.serverInfo),
+		[pulse.close]: always(serverInitialState.serverInfo),
+	}, serverInitialState.serverInfo),
 
 	objects: combineReducers(fromPairs(map(({ key, type }) => [ key, handleActions({
 		[pulse.new]: (state, { payload }) => {
@@ -94,8 +102,8 @@ const reducer = combineReducers({
 			}
 			return state;
 		},
-		[pulse.close]: () => initialState.objects[key],
-	}, initialState.objects[key]) ], things))),
+		[pulse.close]: () => serverInitialState.objects[key],
+	}, serverInitialState.objects[key]) ], things))),
 
 	infos: combineReducers(fromPairs(map(({ key, type }) => [ key, handleActions({
 		[pulse.remove]: (state, { payload }) => {
@@ -112,8 +120,8 @@ const reducer = combineReducers({
 				[payload.index]: payload,
 			});
 		},
-		[pulse.close]: () => initialState.objects[key],
-	}, initialState.infos[key]) ], things))),
+		[pulse.close]: () => serverInitialState.objects[key],
+	}, serverInitialState.infos[key]) ], things))),
 
 	log: combineReducers({
 		items: handleActions({
@@ -129,16 +137,18 @@ const reducer = combineReducers({
 				type: 'info',
 				action: type,
 			})),
-		}, initialState.log.items),
+		}, serverInitialState.log.items),
 	}),
-
-	remoteServers: handleActions({
-		[pulse.remoteServerConnect]: (state, { payload }) => over(lensPath([ payload, 'targetState' ]), always('ready'), state),
-		[pulse.remoteServerDisconnect]: (state, { payload }) => over(lensPath([ payload, 'targetState' ]), always('closed'), state),
-	}, initialState.remoteServers),
 });
+
+const reducer = (state = initialState, action) => {
+	const { pulseServerId = primaryPulseServer } = action.meta || {};
+	return over(lensProp(pulseServerId), s => serverReducer(s, action), state);
+};
 
 module.exports = {
 	initialState,
 	reducer,
+
+	primaryPulseServer,
 };

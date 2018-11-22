@@ -7,6 +7,8 @@ const r = require('r-dom');
 
 const { connect } = require('react-redux');
 
+const { primaryPulseServer } = require('../../reducers/pulse');
+
 const localHostname = os.hostname();
 const { username: localUsername } = os.userInfo();
 
@@ -27,6 +29,6 @@ class ServerInfo extends React.Component {
 
 module.exports = connect(
 	state => ({
-		serverInfo: state.pulse.serverInfo,
+		serverInfo: state.pulse[primaryPulseServer].serverInfo,
 	}),
 )(ServerInfo);

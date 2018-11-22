@@ -21,7 +21,7 @@ const WindowMenu = props => r(WindowMenuBase, [
 		label: 'File',
 	}, [
 		r(MenuItem, {
-			label: 'Connect to server...',
+			label: 'Open a server...',
 			accelerator: 'CommandOrControl+N',
 			onClick: props.openConnectToServerModal,
 		}),

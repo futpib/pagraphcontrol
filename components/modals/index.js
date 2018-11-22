@@ -9,6 +9,7 @@ const {
 const r = require('r-dom');
 
 const React = require('react');
+const PropTypes = require('prop-types');
 
 const Modal = require('react-modal');
 
@@ -25,6 +26,8 @@ const {
 } = require('../../selectors');
 
 const { modules } = require('../../constants/pulse');
+
+const { primaryPulseServer } = require('../../reducers/pulse');
 
 const ConnectToServerModal = require('./connect-to-server');
 const ConfirmationModal = require('./confirmation');
@@ -80,7 +83,7 @@ class Modals extends React.PureComponent {
 					return continuation();
 				}
 
-				const target = f(...args);
+				const target = f.apply(this, args);
 
 				if (!target) {
 					return continuation();
@@ -93,7 +96,7 @@ class Modals extends React.PureComponent {
 				});
 			}, {
 				unloadModuleByIndex(index) {
-					const pai = getPaiByTypeAndIndex('module', index)({ pulse: props });
+					const pai = getPaiByTypeAndIndex('module', index)(this.context.store.getState());
 
 					if (pai && path([ pai.name, 'confirmUnload' ], modules)) {
 						return pai;
@@ -105,8 +108,11 @@ class Modals extends React.PureComponent {
 		};
 	}
 
-	openConnectToServerModal() {
-		this.setState({ connectToServerModalOpen: true });
+	openConnectToServerModal(modalDefaults) {
+		this.setState({
+			connectToServerModalOpen: true,
+			modalDefaults,
+		});
 	}
 
 	openNewGraphObjectModal() {
@@ -145,9 +151,11 @@ class Modals extends React.PureComponent {
 				toggle,
 			}),
 
-			r(ConnectToServerModal, {
-				isOpen: this.state.connectToServerModalOpen,
+			this.state.connectToServerModalOpen && r(ConnectToServerModal, {
+				isOpen: true,
 				onRequestClose: this.handleCancel,
+
+				defaults: this.state.modalDefaults,
 			}),
 
 			r(NewGraphObjectModal, {
@@ -172,9 +180,13 @@ class Modals extends React.PureComponent {
 	}
 }
 
+Modals.contextTypes = {
+	store: PropTypes.any,
+};
+
 module.exports = connect(
 	state => ({
-		infos: state.pulse.infos,
+		infos: state.pulse[primaryPulseServer].infos,
 		preferences: state.preferences,
 	}),
 	dispatch => bindActionCreators(merge(pulseActions, preferencesActions), dispatch),

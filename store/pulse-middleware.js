@@ -1,4 +1,14 @@
 
+const {
+	difference,
+	keys,
+	filter,
+	values,
+	propEq,
+	compose,
+	indexBy,
+} = require('ramda');
+
 const Bluebird = require('bluebird');
 
 const PAClient = require('@futpib/paclient');
@@ -10,6 +20,10 @@ const { pulse: pulseActions } = require('../actions');
 const { things } = require('../constants/pulse');
 
 const { getPaiByTypeAndIndex } = require('../selectors');
+
+const { primaryPulseServer } = require('../reducers/pulse');
+
+const { parseModuleArgs, formatModuleArgs } = require('../utils/module-args');
 
 function getFnFromType(type) {
 	let fn;
@@ -48,7 +62,11 @@ function setSourceOutputChannelVolume(pa, store, index, channelIndex, volume, cb
 	pa.setSourceOutputVolumesByIndex(index, pai.channelVolumes.map((v, i) => i === channelIndex ? volume : v), cb);
 }
 
-module.exports = store => {
+const createPulseClient = (store, pulseServerId = primaryPulseServer) => {
+	let state = store.getState();
+
+	const getPulseServerState = (s = state) => s.pulse[pulseServerId] || {};
+
 	const pa = new PAClient();
 
 	const getInfo = (type, index) => {
@@ -72,13 +90,13 @@ module.exports = store => {
 				throw err;
 			}
 			info.type = info.type || type;
-			store.dispatch(pulseActions.info(info));
+			store.dispatch(pulseActions.info(info, pulseServerId));
 		});
 	};
 
 	pa
 		.on('ready', () => {
-			store.dispatch(pulseActions.ready());
+			store.dispatch(pulseActions.ready(pulseServerId));
 			pa.subscribe('all');
 
 			getServerInfo();
@@ -89,14 +107,14 @@ module.exports = store => {
 					infos.forEach(info => {
 						const { index } = info;
 						info.type = info.type || type;
-						store.dispatch(pulseActions.new({ type, index }));
-						store.dispatch(pulseActions.info(info));
+						store.dispatch(pulseActions.new({ type, index }, pulseServerId));
+						store.dispatch(pulseActions.info(info, pulseServerId));
 					});
 				});
 			});
 		})
 		.on('close', () => {
-			store.dispatch(pulseActions.close());
+			store.dispatch(pulseActions.close(pulseServerId));
 			reconnect();
 		})
 		.on('new', (type, index) => {
@@ -104,7 +122,7 @@ module.exports = store => {
 				getServerInfo();
 				return;
 			}
-			store.dispatch(pulseActions.new({ type, index }));
+			store.dispatch(pulseActions.new({ type, index }, pulseServerId));
 			getInfo(type, index);
 		})
 		.on('change', (type, index) => {
@@ -112,20 +130,33 @@ module.exports = store => {
 				getServerInfo();
 				return;
 			}
-			store.dispatch(pulseActions.change({ type, index }));
+			store.dispatch(pulseActions.change({ type, index }, pulseServerId));
 			getInfo(type, index);
 		})
 		.on('remove', (type, index) => {
-			store.dispatch(pulseActions.remove({ type, index }));
+			store.dispatch(pulseActions.remove({ type, index }, pulseServerId));
 		})
 		.on('error', error => {
 			handleError(error);
 		});
 
 	const reconnect = () => new Bluebird((resolve, reject) => {
+		const server = getPulseServerState();
+		if (server.targetState !== 'ready') {
+			resolve();
+			return;
+		}
+
 		pa.once('ready', resolve);
 		pa.once('error', reject);
-		pa.connect();
+
+		if (pulseServerId === primaryPulseServer) {
+			pa.connect();
+		} else {
+			pa.connect({
+				serverString: pulseServerId,
+			});
+		}
 	}).catch(error => {
 		if (error.message === 'Unable to connect to PulseAudio server') {
 			return Bluebird.delay(5000).then(reconnect);
@@ -133,14 +164,12 @@ module.exports = store => {
 		throw error;
 	});
 
-	reconnect();
-
 	const getServerInfo = () => {
 		pa.getServerInfo((err, info) => {
 			if (err) {
 				handleError(err);
 			} else {
-				store.dispatch(pulseActions.serverInfo(info));
+				store.dispatch(pulseActions.serverInfo(info, pulseServerId));
 			}
 		});
 	};
@@ -152,7 +181,7 @@ module.exports = store => {
 
 		console.error(error);
 
-		store.dispatch(pulseActions.error(error));
+		store.dispatch(pulseActions.error(error, pulseServerId));
 	};
 
 	const handlePulseActions = handleActions({
@@ -250,10 +279,120 @@ module.exports = store => {
 		},
 	}, null);
 
+	return {
+		handleAction: action => handlePulseActions(null, action),
+
+		storeWillUpdate(prevState, nextState) {
+			state = nextState;
+			const prev = getPulseServerState(prevState);
+			const next = getPulseServerState(nextState);
+
+			if (prev === next) {
+				return;
+			}
+
+			if (prev.targetState !== next.targetState) {
+				if (next.targetState === 'ready') {
+					reconnect();
+				} else if (next.targetState === 'closed') {
+					pa.end();
+				}
+			}
+		},
+	};
+};
+
+const tunnelAttempts = {};
+const tunnelAttemptTimeout = 15000;
+const isNotMonitor = s => s.monitorSourceIndex < 0;
+const updateTunnels = (dispatch, primaryState, remoteServerId, remoteState) => {
+	const sourceTunnels = compose(
+		indexBy(m => parseModuleArgs(m.args).source),
+		filter(propEq('name', 'module-tunnel-source')),
+		values,
+	)(primaryState.infos.modules);
+	const sinkTunnels = compose(
+		indexBy(m => parseModuleArgs(m.args).sink),
+		filter(propEq('name', 'module-tunnel-sink')),
+		values,
+	)(primaryState.infos.modules);
+
+	const remoteSources = filter(isNotMonitor, values(remoteState.infos.sources));
+	const remoteSinks = values(remoteState.infos.sinks);
+
+	// FIXME: BUG: sounce/sink name collisions are possible, should also check server id
+
+	remoteSinks.forEach(sink => {
+		if ((tunnelAttempts[sink.name] || 0) + tunnelAttemptTimeout > Date.now()) {
+			return;
+		}
+		if (!sinkTunnels[sink.name]) {
+			tunnelAttempts[sink.name] = Date.now();
+			dispatch(pulseActions.loadModule('module-tunnel-sink', formatModuleArgs({
+				server: remoteServerId,
+				sink: sink.name,
+			})));
+		}
+	});
+
+	remoteSources.forEach(source => {
+		if ((tunnelAttempts[source.name] || 0) + tunnelAttemptTimeout > Date.now()) {
+			return;
+		}
+		if (!sourceTunnels[source.name]) {
+			tunnelAttempts[source.name] = Date.now();
+			dispatch(pulseActions.loadModule('module-tunnel-source', formatModuleArgs({
+				server: remoteServerId,
+				source: source.name,
+			})));
+		}
+	});
+};
+
+module.exports = store => {
+	const clients = {
+		[primaryPulseServer]: createPulseClient(store, primaryPulseServer),
+	};
+
 	return next => action => {
+		const { pulseServerId = primaryPulseServer } = action.meta || {};
+
+		const prevState = store.getState();
+
 		const ret = next(action);
 
-		handlePulseActions(null, action);
+		const nextState = store.getState();
+
+		const newPulseServerIds = difference(keys(nextState.pulse), keys(clients));
+
+		newPulseServerIds.forEach(pulseServerId => {
+			clients[pulseServerId] = createPulseClient(store, pulseServerId);
+		});
+
+		const client = clients[pulseServerId];
+		if (client) {
+			client.handleAction(action);
+			if (prevState !== nextState) {
+				client.storeWillUpdate(prevState, nextState);
+			}
+		}
+
+		const primaryState = nextState.pulse[primaryPulseServer];
+		keys(nextState.pulse).forEach(pulseServerId => {
+			if (pulseServerId === primaryPulseServer) {
+				return;
+			}
+
+			const remoteState = nextState.pulse[pulseServerId];
+
+			if (primaryState.state === 'ready' &&
+				remoteState.state === 'ready' &&
+				primaryState.targetState === 'ready' &&
+				primaryState.targetState === 'ready'
+			) {
+				updateTunnels(store.dispatch, primaryState, pulseServerId, remoteState);
+			}
+		});
 
 		return ret;
 	};

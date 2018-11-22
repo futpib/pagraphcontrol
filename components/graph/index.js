@@ -28,10 +28,11 @@ const {
 } = require('ramda');
 
 const React = require('react');
+const PropTypes = require('prop-types');
 
 const r = require('r-dom');
 
-const { connect } = require('react-redux');
+const { connect, Provider: ReduxProvider } = require('react-redux');
 const { bindActionCreators } = require('redux');
 
 const { HotKeys } = require('react-hotkeys');
@@ -48,6 +49,8 @@ const {
 
 const {
 	getPaiByTypeAndIndex,
+	getPaiByDgoFromInfos,
+
 	getDerivedMonitorSources,
 
 	getClientSinkInputs,
@@ -69,6 +72,8 @@ const {
 const { size } = require('../../constants/view');
 
 const VolumeSlider = require('../../components/volume-slider');
+
+const { primaryPulseServer } = require('../../reducers/pulse');
 
 const { keyMap } = require('../hot-keys');
 
@@ -127,8 +132,6 @@ const selectionObjectTypes = {
 		return o => o.type === type;
 	},
 };
-
-const dgoToPai = new WeakMap();
 
 const key = pao => `${pao.type}-${pao.index}`;
 
@@ -287,8 +290,7 @@ const renderNode = (nodeRef, data, key, selected, hovered) => r({
 	hovered,
 });
 
-const getVolumesForThumbnail = ({ pai, state }) => {
-	const { lockChannelsTogether } = state.preferences;
+const getVolumesForThumbnail = ({ pai, lockChannelsTogether }) => {
 	let volumes = (pai && pai.channelVolumes) || [];
 	if (lockChannelsTogether) {
 		if (volumes.every(v => v === volumes[0])) {
@@ -300,14 +302,20 @@ const getVolumesForThumbnail = ({ pai, state }) => {
 	return volumes;
 };
 
-const VolumeThumbnail = ({ pai, state }) => {
-	if (state.preferences.hideVolumeThumbnails) {
+const VolumeThumbnail = connect(
+	state => ({
+		hideVolumeThumbnails: state.preferences.hideVolumeThumbnails,
+		lockChannelsTogether: state.preferences.lockChannelsTogether,
+	}),
+)(({ pai, hideVolumeThumbnails, lockChannelsTogether }) => {
+	if (hideVolumeThumbnails) {
 		return r(React.Fragment);
 	}
+
 	const normVolume = PA_VOLUME_NORM;
 	const baseVolume = defaultTo(normVolume, pai && pai.baseVolume);
 
-	const volumes = getVolumesForThumbnail({ pai, state });
+	const volumes = getVolumesForThumbnail({ pai, lockChannelsTogether });
 	const muted = !pai || pai.muted;
 
 	const step = size / 32;
@@ -378,22 +386,27 @@ const VolumeThumbnail = ({ pai, state }) => {
 			]);
 		}),
 	]);
-};
+});
 
-const getVolumes = ({ pai, state }) => {
-	const { lockChannelsTogether } = state.preferences;
+const getVolumes = ({ pai, lockChannelsTogether }) => {
 	let volumes = (pai && pai.channelVolumes) || [];
 	if (lockChannelsTogether) {
 		volumes = [
 			maximum(volumes),
 		];
 	}
-	return { volumes, lockChannelsTogether };
+	return volumes;
 };
 
-const VolumeControls = ({ pai, state }) => {
-	const { maxVolume, volumeStep } = state.preferences;
-	const { volumes, lockChannelsTogether } = getVolumes({ pai, state });
+const VolumeControls = connect(
+	state => pick([
+		'maxVolume',
+		'volumeStep',
+		'lockChannelsTogether',
+	], state.preferences),
+	dispatch => bindActionCreators(pulseActions, dispatch),
+)(({ pai, maxVolume, volumeStep, lockChannelsTogether, ...props }) => {
+	const volumes = getVolumes({ pai, lockChannelsTogether });
 	const baseVolume = pai && pai.baseVolume;
 	const muted = !pai || pai.muted;
 
@@ -410,36 +423,40 @@ const VolumeControls = ({ pai, state }) => {
 			onChange: v => {
 				if (pai.type === 'sink') {
 					if (lockChannelsTogether) {
-						state.setSinkVolumes(pai.index, repeat(v, pai.sampleSpec.channels));
+						props.setSinkVolumes(pai.index, repeat(v, pai.sampleSpec.channels));
 					} else {
-						state.setSinkChannelVolume(pai.index, channelIndex, v);
+						props.setSinkChannelVolume(pai.index, channelIndex, v);
 					}
 				} else if (pai.type === 'source') {
 					if (lockChannelsTogether) {
-						state.setSourceVolumes(pai.index, repeat(v, pai.sampleSpec.channels));
+						props.setSourceVolumes(pai.index, repeat(v, pai.sampleSpec.channels));
 					} else {
-						state.setSourceChannelVolume(pai.index, channelIndex, v);
+						props.setSourceChannelVolume(pai.index, channelIndex, v);
 					}
 				} else if (pai.type === 'sinkInput') {
 					if (lockChannelsTogether) {
-						state.setSinkInputVolumes(pai.index, repeat(v, pai.sampleSpec.channels));
+						props.setSinkInputVolumes(pai.index, repeat(v, pai.sampleSpec.channels));
 					} else {
-						state.setSinkInputChannelVolume(pai.index, channelIndex, v);
+						props.setSinkInputChannelVolume(pai.index, channelIndex, v);
 					}
 				} else if (pai.type === 'sourceOutput') {
 					if (lockChannelsTogether) {
-						state.setSourceOutputVolumes(pai.index, repeat(v, pai.sampleSpec.channels));
+						props.setSourceOutputVolumes(pai.index, repeat(v, pai.sampleSpec.channels));
 					} else {
-						state.setSourceOutputChannelVolume(pai.index, channelIndex, v);
+						props.setSourceOutputChannelVolume(pai.index, channelIndex, v);
 					}
 				}
 			},
 		})),
 	]);
-};
+});
 
-const Icon = ({ state, name, ...props }) => {
-	const src = state.icons[name];
+const Icon = connect(
+	state => ({
+		icons: state.icons,
+	}),
+)(({ icons, name, title }) => {
+	const src = icons[name];
 
 	if (!src) {
 		return r(React.Fragment);
@@ -448,9 +465,9 @@ const Icon = ({ state, name, ...props }) => {
 	return r.img({
 		className: 'node-name-icon',
 		src,
-		...props,
+		title,
 	});
-};
+});
 
 const RemoteTunnelInfo = ({ pai }) => {
 	const fqdn = path([ 'properties', 'tunnel', 'remote', 'fqdn' ], pai);
@@ -466,8 +483,12 @@ const RemoteTunnelInfo = ({ pai }) => {
 	]);
 };
 
-const DebugText = ({ dgo, pai, state }) => {
-	if (!state.preferences.showDebugInfo) {
+const DebugText = connect(
+	state => ({
+		showDebugInfo: state.preferences.showDebugInfo,
+	}),
+)(({ dgo, pai, showDebugInfo }) => {
+	if (!showDebugInfo) {
 		return r(React.Fragment);
 	}
 
@@ -479,15 +500,18 @@ const DebugText = ({ dgo, pai, state }) => {
 		JSON.stringify(dgo, null, 2),
 		JSON.stringify(pai, null, 2),
 	]);
-};
+});
 
-const SinkText = ({ dgo, pai, state, selected }) => r(React.Fragment, [
+const SinkText = connect(
+	state => ({
+		defaultSinkName: state.pulse[primaryPulseServer].serverInfo.defaultSinkName,
+	}),
+)(({ dgo, pai, selected, defaultSinkName }) => r(React.Fragment, [
 	r.div({
 		className: 'node-name',
 	}, [
-		state.serverInfo.defaultSinkName === pai.name && r(React.Fragment, [
+		defaultSinkName === pai.name && r(React.Fragment, [
 			r(Icon, {
-				state,
 				name: 'starred',
 				title: 'Default sink',
 			}),
@@ -501,20 +525,23 @@ const SinkText = ({ dgo, pai, state, selected }) => r(React.Fragment, [
 	r.div({
 		className: 'node-main',
 	}, [
-		r(selected ? VolumeControls : VolumeThumbnail, { pai, state }),
+		r(selected ? VolumeControls : VolumeThumbnail, { pai }),
 	]),
 
 	r(RemoteTunnelInfo, { pai }),
-	r(DebugText, { dgo, pai, state }),
-]);
+	r(DebugText, { dgo, pai }),
+]));
 
-const SourceText = ({ dgo, pai, state, selected }) => r(React.Fragment, [
+const SourceText = connect(
+	state => ({
+		defaultSourceName: state.pulse[primaryPulseServer].serverInfo.defaultSourceName,
+	}),
+)(({ dgo, pai, selected, defaultSourceName }) => r(React.Fragment, [
 	r.div({
 		className: 'node-name',
 	}, [
-		state.serverInfo.defaultSourceName === pai.name && r(React.Fragment, [
+		defaultSourceName === pai.name && r(React.Fragment, [
 			r(Icon, {
-				state,
 				name: 'starred',
 				title: 'Default source',
 			}),
@@ -528,17 +555,21 @@ const SourceText = ({ dgo, pai, state, selected }) => r(React.Fragment, [
 	r.div({
 		className: 'node-main',
 	}, [
-		r(selected ? VolumeControls : VolumeThumbnail, { pai, state }),
+		r(selected ? VolumeControls : VolumeThumbnail, { pai }),
 	]),
 
 	r(RemoteTunnelInfo, { pai }),
-	r(DebugText, { dgo, pai, state }),
-]);
+	r(DebugText, { dgo, pai }),
+]));
 
-const ClientText = ({ dgo, pai, state }) => {
+const ClientText = connect(
+	state => ({
+		modules: state.pulse[primaryPulseServer].infos.modules,
+	}),
+)(({ dgo, pai, modules }) => {
 	let title = path('properties.application.process.binary'.split('.'), pai);
 
-	const module = state.infos.modules[pai.moduleIndex];
+	const module = modules[pai.moduleIndex];
 	if (module && module.name === 'module-native-protocol-tcp') {
 		title = path([ 'properties', 'native-protocol', 'peer' ], pai) || title;
 	}
@@ -548,21 +579,24 @@ const ClientText = ({ dgo, pai, state }) => {
 			className: 'node-name',
 			title,
 		}, pai.name),
-		r(DebugText, { dgo, pai, state }),
+		r(DebugText, { dgo, pai }),
 	]);
-};
+});
 
-const ModuleText = ({ dgo, pai, state }) => r(React.Fragment, [
+const ModuleText = ({ dgo, pai }) => r(React.Fragment, [
 	r.div({
 		className: 'node-name',
 		title: pai.properties.module.description,
 	}, pai.name),
-	r(DebugText, { dgo, pai, state }),
+	r(DebugText, { dgo, pai }),
 ]);
 
-const renderNodeText = state => (dgo, i, selected) => {
-	const pai = dgoToPai.get(dgo);
-
+const NodeText = connect(
+	(state, { dgo }) => ({
+		icons: state.icons,
+		pai: dgo.type && getPaiByTypeAndIndex(dgo.type, dgo.index)(state),
+	}),
+)(({ dgo, pai, selected, icons }) => {
 	if (!pai) {
 		return r(React.Fragment);
 	}
@@ -576,7 +610,7 @@ const renderNodeText = state => (dgo, i, selected) => {
 			width: size,
 			height: size,
 
-			backgroundImage: (icon => icon && `url(${icon})`)(state.icons[getPaiIcon(pai)]),
+			backgroundImage: (icon => icon && `url(${icon})`)(icons[getPaiIcon(pai)]),
 		},
 	}, r({
 		sink: SinkText,
@@ -586,10 +620,16 @@ const renderNodeText = state => (dgo, i, selected) => {
 	}[dgo.type] || ModuleText, {
 		dgo,
 		pai,
-		state,
 		selected,
 	})));
-};
+});
+
+const withStorePassthrough = component => store =>
+	(...args) => r(ReduxProvider, { store }, component(...args));
+
+const renderNodeText = withStorePassthrough((dgo, i, selected) => {
+	return r(NodeText, { dgo, selected });
+});
 
 const renderEdge = props => r(Edge, {
 	classSet: {
@@ -598,23 +638,27 @@ const renderEdge = props => r(Edge, {
 	...props,
 });
 
-const renderEdgeText = state => ({ data: dgo, transform, selected }) => {
-	const pai = dgo.type && getPaiByTypeAndIndex(dgo.type, dgo.index)({ pulse: state });
+const EdgeText = connect(
+	(state, { dgo }) => ({
+		pai: dgo.type && getPaiByTypeAndIndex(dgo.type, dgo.index)(state),
+	}),
+)(({ dgo, pai, transform, selected }) => r('foreignObject', {
+	transform,
+}, r.div({
+	className: 'edge-text',
+	style: {
+		width: size,
+		height: size,
+	},
+}, [
+	pai && (!selected) && r(VolumeThumbnail, { pai }),
+	pai && selected && r(VolumeControls, { pai }),
+	r(DebugText, { dgo, pai }),
+])));
 
-	return r('foreignObject', {
-		transform,
-	}, r.div({
-		className: 'edge-text',
-		style: {
-			width: size,
-			height: size,
-		},
-	}, [
-		pai && (!selected) && r(VolumeThumbnail, { pai, state }),
-		pai && selected && r(VolumeControls, { pai, state }),
-		r(DebugText, { dgo, pai, state }),
-	]));
-};
+const renderEdgeText = withStorePassthrough(({ data: dgo, transform, selected }) => {
+	return r(EdgeText, { dgo, transform, selected });
+});
 
 const layoutEngine = new LayoutEngine();
 
@@ -744,7 +788,7 @@ class Graph extends React.Component {
 				}
 			}
 
-			const pai = dgoToPai.get(node);
+			const pai = getPaiByDgoFromInfos(node)(props.infos);
 			if (pai) {
 				if (props.preferences.hideMonitors &&
 					pai.properties.device &&
@@ -781,16 +825,6 @@ class Graph extends React.Component {
 			}
 			return filteredNodeKeys.has(edge.source) && filteredNodeKeys.has(edge.target);
 		}, edges);
-
-		nodes.forEach(node => {
-			const pai = getPaiByTypeAndIndex(node.type, node.index)({ pulse: props });
-			dgoToPai.set(node, pai);
-		});
-
-		edges.forEach(edge => {
-			const pai = getPaiByTypeAndIndex(edge.type, edge.index)({ pulse: props });
-			dgoToPai.set(edge, pai);
-		});
 
 		let { selected, moved, contexted } = state;
 
@@ -841,6 +875,8 @@ class Graph extends React.Component {
 
 		this.graphViewElement = document.querySelector('#graph .view-wrapper');
 		this.graphViewElement.setAttribute('tabindex', '-1');
+
+		this.props.connect();
 	}
 
 	componentDidUpdate() {
@@ -889,7 +925,7 @@ class Graph extends React.Component {
 	}
 
 	onNodeMouseDown(event, data) {
-		const pai = dgoToPai.get(data);
+		const pai = getPaiByDgoFromInfos(data)(this.props.infos);
 		if (pai && event.button === 1) {
 			if (pai.type === 'sink' ||
 				pai.type === 'source' ||
@@ -923,8 +959,8 @@ class Graph extends React.Component {
 	}
 
 	onCreateEdge(source, target) {
-		const sourcePai = dgoToPai.get(source);
-		const targetPai = dgoToPai.get(target);
+		const sourcePai = getPaiByDgoFromInfos(source)(this.props.infos);
+		const targetPai = getPaiByDgoFromInfos(target)(this.props.infos);
 		if (sourcePai && targetPai &&
 			source.type === 'source' && target.type === 'sink'
 		) {
@@ -947,7 +983,7 @@ class Graph extends React.Component {
 	}
 
 	onEdgeMouseDown(event, data) {
-		const pai = dgoToPai.get(data);
+		const pai = getPaiByDgoFromInfos(data)(this.props.infos);
 		if (pai && event.button === 1) {
 			if (pai.type === 'sinkInput' ||
 				pai.type === 'sourceOutput'
@@ -979,7 +1015,7 @@ class Graph extends React.Component {
 			this.props.setSourceOutputMuteByIndex(pai.index, muted);
 		} else if (pai.type === 'sink') {
 			if (sourceBiased) {
-				const sinkInputs = getSinkSinkInputs(pai)({ pulse: this.props });
+				const sinkInputs = getSinkSinkInputs(pai)(this.context.store.getState());
 				this.toggleAllMute(sinkInputs);
 			} else {
 				this.props.setSinkMute(pai.index, muted);
@@ -988,25 +1024,25 @@ class Graph extends React.Component {
 			this.props.setSourceMute(pai.index, muted);
 		} else if (pai.type === 'client') {
 			if (sourceBiased) {
-				const sourceOutputs = getClientSourceOutputs(pai)({ pulse: this.props });
+				const sourceOutputs = getClientSourceOutputs(pai)(this.context.store.getState());
 				this.toggleAllMute(sourceOutputs);
 			} else {
-				const sinkInputs = getClientSinkInputs(pai)({ pulse: this.props });
+				const sinkInputs = getClientSinkInputs(pai)(this.context.store.getState());
 				this.toggleAllMute(sinkInputs);
 			}
 		} else if (pai.type === 'module') {
 			if (sourceBiased) {
-				const sourceOutputs = getModuleSourceOutputs(pai)({ pulse: this.props });
+				const sourceOutputs = getModuleSourceOutputs(pai)(this.context.store.getState());
 				this.toggleAllMute(sourceOutputs);
 			} else {
-				const sinkInputs = getModuleSinkInputs(pai)({ pulse: this.props });
+				const sinkInputs = getModuleSinkInputs(pai)(this.context.store.getState());
 				this.toggleAllMute(sinkInputs);
 			}
 		}
 	}
 
 	onDelete(selected) {
-		const pai = dgoToPai.get(selected);
+		const pai = getPaiByDgoFromInfos(selected)(this.props.infos);
 
 		if (selected.type === 'client') {
 			this.props.killClientByIndex(selected.index);
@@ -1040,8 +1076,7 @@ class Graph extends React.Component {
 	}
 
 	canContextMenuSetAsDefault() {
-		const { contexted } = this.state;
-		const pai = dgoToPai.get(contexted);
+		const pai = getPaiByDgoFromInfos(this.state.contexted)(this.props.infos);
 
 		if (pai && pai.type === 'sink' && pai.name !== this.props.serverInfo.defaultSinkName) {
 			return true;
@@ -1055,7 +1090,7 @@ class Graph extends React.Component {
 	}
 
 	setAsDefault(data) {
-		const pai = dgoToPai.get(data);
+		const pai = getPaiByDgoFromInfos(data)(this.props.infos);
 
 		if (pai.type === 'sink') {
 			this.props.setDefaultSinkByName(pai.name);
@@ -1100,21 +1135,21 @@ class Graph extends React.Component {
 				if (all) {
 					this.toggleAllMute(this.props.infos.sources);
 				} else {
-					const defaultSource = getDefaultSourcePai({ pulse: this.props });
+					const defaultSource = getDefaultSourcePai(this.context.store.getState());
 					this.toggleMute(defaultSource);
 				}
 			} else {
 				if (all) { // eslint-disable-line no-lonely-if
 					this.toggleAllMute(this.props.infos.sinks);
 				} else {
-					const defaultSink = getDefaultSinkPai({ pulse: this.props });
+					const defaultSink = getDefaultSinkPai(this.context.store.getState());
 					this.toggleMute(defaultSink);
 				}
 			}
 			return;
 		}
 
-		const pai = dgoToPai.get(this.state.selected);
+		const pai = getPaiByDgoFromInfos(this.state.selected)(this.props.infos);
 
 		if (!pai) {
 			return;
@@ -1157,9 +1192,9 @@ class Graph extends React.Component {
 		let pai;
 
 		if (this.state.selected) {
-			pai = dgoToPai.get(this.state.selected);
+			pai = getPaiByDgoFromInfos(this.state.selected)(this.props.infos);
 		} else {
-			pai = getDefaultSinkPai({ pulse: this.props });
+			pai = getDefaultSinkPai(this.context.store.getState());
 		}
 
 		if (!pai) {
@@ -1167,12 +1202,12 @@ class Graph extends React.Component {
 		}
 
 		if (pai.type === 'client') {
-			const sinkInputs = getClientSinkInputs(pai)({ pulse: this.props });
+			const sinkInputs = getClientSinkInputs(pai)(this.context.store.getState());
 			this._volumeAll(sinkInputs, direction);
 			return;
 		}
 		if (pai.type === 'module') {
-			const sinkInputs = getModuleSinkInputs(pai)({ pulse: this.props });
+			const sinkInputs = getModuleSinkInputs(pai)(this.context.store.getState());
 			this._volumeAll(sinkInputs, direction);
 			return;
 		}
@@ -1407,10 +1442,10 @@ class Graph extends React.Component {
 				renderDefs,
 
 				renderNode,
-				renderNodeText: renderNodeText(this.props),
+				renderNodeText: renderNodeText(this.context.store),
 
 				renderEdge,
-				renderEdgeText: renderEdgeText(this.props),
+				renderEdgeText: renderEdgeText(this.context.store),
 			}),
 
 			this.state.contexted && (
@@ -1438,12 +1473,16 @@ class Graph extends React.Component {
 	}
 }
 
+Graph.contextTypes = {
+	store: PropTypes.any,
+};
+
 module.exports = connect(
 	state => ({
-		serverInfo: state.pulse.serverInfo,
+		serverInfo: state.pulse[primaryPulseServer].serverInfo,
 
-		objects: state.pulse.objects,
-		infos: state.pulse.infos,
+		objects: state.pulse[primaryPulseServer].objects,
+		infos: state.pulse[primaryPulseServer].infos,
 
 		derivations: {
 			monitorSources: getDerivedMonitorSources(state),
