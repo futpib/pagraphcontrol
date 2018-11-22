@@ -20,6 +20,8 @@ div[tabindex="-1"]:focus {
 	user-select: none;
 
 	padding: 8px;
+
+	cursor: pointer;
 }
 
 .button:hover {
@@ -35,6 +37,11 @@ div[tabindex="-1"]:focus {
 	background: var(--themeSelectedBgColor);
 	position: relative;
 	top: 1px;
+}
+
+.button:disabled {
+	border-color: var(--unfocusedBorders);
+	cursor: not-allowed;
 }
 
 .button-group {

@@ -8,6 +8,8 @@ const {
 	pick,
 	equals,
 	takeLast,
+	over,
+	lensPath,
 } = require('ramda');
 
 const { combineReducers } = require('redux');
@@ -27,6 +29,8 @@ const initialState = {
 	infos: fromPairs(map(({ key }) => [ key, {} ], things)),
 
 	log: { items: [] },
+
+	remoteServers: {},
 };
 
 const logMaxItems = 3;
@@ -127,6 +131,11 @@ const reducer = combineReducers({
 			})),
 		}, initialState.log.items),
 	}),
+
+	remoteServers: handleActions({
+		[pulse.remoteServerConnect]: (state, { payload }) => over(lensPath([ payload, 'targetState' ]), always('ready'), state),
+		[pulse.remoteServerDisconnect]: (state, { payload }) => over(lensPath([ payload, 'targetState' ]), always('closed'), state),
+	}, initialState.remoteServers),
 });
 
 module.exports = {

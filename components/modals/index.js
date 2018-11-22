@@ -30,6 +30,7 @@ const ConnectToServerModal = require('./connect-to-server');
 const ConfirmationModal = require('./confirmation');
 const NewGraphObjectModal = require('./new-graph-object');
 const LoadModuleModal = require('./load-module');
+const AddRemoteServerModal = require('./add-remote-server-modal');
 
 Modal.setAppElement('#root');
 
@@ -50,6 +51,7 @@ class Modals extends React.PureComponent {
 			connectToServerModalOpen: false,
 			newGraphObjectModalOpen: false,
 			loadModuleModalOpen: false,
+			addRemoteServerModalOpen: false,
 
 			modalDefaults: undefined,
 
@@ -58,6 +60,7 @@ class Modals extends React.PureComponent {
 
 				openNewGraphObjectModal: this.openNewGraphObjectModal.bind(this),
 				openLoadModuleModal: this.openLoadModuleModal.bind(this),
+				openAddRemoteServerModal: this.openAddRemoteServerModal.bind(this),
 			},
 		};
 		this.state = this.initialState;
@@ -117,6 +120,10 @@ class Modals extends React.PureComponent {
 		});
 	}
 
+	openAddRemoteServerModal() {
+		this.setState({ addRemoteServerModalOpen: true });
+	}
+
 	handleCancel() {
 		this.setState(this.initialState);
 	}
@@ -155,6 +162,11 @@ class Modals extends React.PureComponent {
 				onRequestClose: this.handleCancel,
 
 				defaults: this.state.modalDefaults,
+			}),
+
+			r(AddRemoteServerModal, {
+				isOpen: this.state.addRemoteServerModalOpen,
+				onRequestClose: this.handleCancel,
 			}),
 		]);
 	}

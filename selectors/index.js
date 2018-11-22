@@ -66,6 +66,8 @@ const getDefaultSinkPai = createSelector(
 	(sinks, defaultSinkName) => find(propEq('name', defaultSinkName), values(sinks)),
 );
 
+const getRemoteServerByAddress = address => state => state.pulse.remoteServers[address];
+
 module.exports = {
 	getPaiByTypeAndIndex,
 	getDerivedMonitorSources,
@@ -80,4 +82,6 @@ module.exports = {
 
 	getDefaultSinkPai,
 	getDefaultSourcePai,
+
+	getRemoteServerByAddress,
 };

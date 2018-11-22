@@ -290,6 +290,10 @@ class Node extends NodeBase {
 }
 
 EdgeBase.calculateOffset = function (nodeSize, source, target) {
+	// if (!source || !target) {
+	// 	return this.getDefaultIntersectResponse();
+	// }
+
 	const arrowVector = math.matrix([ target.x - source.x, target.y - source.y ]);
 	const offsetLength = Math.max(0, Math.min((0.75 * size), (math.norm(arrowVector) / 2) - 40));
 	const offsetVector = math.dotMultiply(arrowVector, (offsetLength / math.norm(arrowVector)) || 0);

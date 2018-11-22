@@ -46,5 +46,8 @@ module.exports = createActionCreators({
 
 		SET_DEFAULT_SINK_BY_NAME: name => ({ name }),
 		SET_DEFAULT_SOURCE_BY_NAME: name => ({ name }),
+
+		REMOTE_SERVER_CONNECT: null,
+		REMOTE_SERVER_DISCONNECT: null,
 	},
 });

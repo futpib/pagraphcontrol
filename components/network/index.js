@@ -7,6 +7,8 @@ const {
 	propEq,
 	sortBy,
 	prop,
+	merge,
+	keys,
 } = require('ramda');
 
 const React = require('react');
@@ -16,11 +18,65 @@ const r = require('r-dom');
 const { connect } = require('react-redux');
 const { bindActionCreators } = require('redux');
 
-const { pulse: pulseActions } = require('../../actions');
+const {
+	pulse: pulseActions,
+	preferences: preferencesActions,
+} = require('../../actions');
 const { formatModuleArgs } = require('../../utils/module-args');
+
+const { getRemoteServerByAddress } = require('../../selectors');
 
 const Button = require('../button');
 const Label = require('../label');
+
+const RemoteServer = connect(
+	(state, props) => ({
+		remoteServer: getRemoteServerByAddress(props.address)(state),
+	}),
+	dispatch => ({
+		actions: bindActionCreators(merge(pulseActions, preferencesActions), dispatch),
+	}),
+)(({ address, remoteServer = {}, actions }) => {
+	const { targetState, state } = remoteServer;
+	const hostname = path([ 'serverInfo', 'hostname' ], remoteServer);
+
+	return r.div([
+		r.div({
+			style: { display: 'flex', justifyContent: 'space-between' },
+		}, [
+			r(Label, {
+				userSelect: true,
+			}, [
+				hostname || address,
+			]),
+
+			targetState === 'ready' ? r(Button, {
+				onClick: () => {
+					actions.remoteServerDisconnect(address);
+				},
+			}, 'Disconnect') : r(React.Fragment, [
+				r(Button, {
+					onClick: () => {
+						actions.remoteServerDisconnect(address);
+						actions.setDelete('remoteServerAddresses', address);
+					},
+				}, 'Forget'),
+
+				r(Button, {
+					onClick: () => {
+						actions.remoteServerConnect(address);
+					},
+				}, 'Connect'),
+			]),
+		]),
+
+		state === 'ready' ? r(React.Fragment, [
+			// TODO
+		]) : targetState === 'ready' ? r(Label, [
+			'Connecting...',
+		]) : null,
+	]);
+});
 
 class Cards extends React.Component {
 	constructor(props) {
@@ -51,6 +107,8 @@ class Cards extends React.Component {
 			propEq('name', 'module-native-protocol-tcp'),
 			values(this.props.modules),
 		));
+
+		const remoteServerAddresses = keys(this.props.preferences.remoteServerAddresses);
 
 		return r.div({
 			classSet: {
@@ -122,6 +180,24 @@ class Cards extends React.Component {
 					});
 				},
 			}, 'Allow incoming connections...'),
+
+			r.hr(),
+
+			remoteServerAddresses.length > 0 ? r(React.Fragment, [
+				r(Label, [
+					'Remote servers:',
+				]),
+
+				...map(address => r(RemoteServer, { address }), remoteServerAddresses),
+			]) : r(Label, [
+				'No known servers',
+			]),
+
+			r(Button, {
+				onClick: () => {
+					this.props.openAddRemoteServerModal();
+				},
+			}, 'Add a server...'),
 
 			this.props.preferences.showDebugInfo && r.pre({
 				style: {
