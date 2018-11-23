@@ -25,3 +25,14 @@
 ```bash
 yaourt pagraphcontrol-git
 ```
+
+## See Also
+
+### Other PulseAudio Superpowers
+
+* [pulseaudio-dlna](https://github.com/masmu/pulseaudio-dlna) - DLNA / UPNP / Chromecast - streams to most TVs and stuff
+
+### PulseAudio Documentation
+
+* [Modules](https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/Modules/)
+* [Server (Connection) String Format](https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/ServerStrings/)
