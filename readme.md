@@ -31,6 +31,7 @@ yaourt pagraphcontrol-git
 ### Other PulseAudio Superpowers
 
 * [pulseaudio-dlna](https://github.com/masmu/pulseaudio-dlna) - DLNA / UPNP / Chromecast - streams to most TVs and stuff
+* [PulseEffects](https://github.com/wwmm/pulseeffects) - Equalizer and other audio effects
 
 ### PulseAudio Documentation
 
