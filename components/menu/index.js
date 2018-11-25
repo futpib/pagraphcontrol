@@ -18,7 +18,7 @@ const MenuProvider = ({ children, ...props }) => r(Provider, { electron }, r(Rea
 
 const WindowMenu = props => r(WindowMenuBase, [
 	r(MenuItem, {
-		label: 'File',
+		label: '&File',
 	}, [
 		r(MenuItem, {
 			label: 'Open a server...',
@@ -35,7 +35,7 @@ const WindowMenu = props => r(WindowMenuBase, [
 	]),
 
 	r(MenuItem, {
-		label: 'View',
+		label: '&View',
 	}, [
 		r(MenuItem, {
 			label: 'Cards',
@@ -74,7 +74,7 @@ const WindowMenu = props => r(WindowMenuBase, [
 	]),
 
 	r(MenuItem, {
-		label: 'Help',
+		label: '&Help',
 	}, [
 		r(MenuItem, {
 			label: 'Documentation',
