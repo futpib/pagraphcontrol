@@ -189,6 +189,7 @@ div[tabindex="-1"]:focus {
 }
 .view-wrapper .edge-mouse-handler .edge-text {
 	opacity: 1;
+	color: var(--themeTextColor);
 }
 
 .server-info {
