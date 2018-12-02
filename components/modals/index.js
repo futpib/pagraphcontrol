@@ -42,6 +42,18 @@ Modal.defaultStyles = {
 	content: {},
 };
 
+const bindMemo = new WeakMap();
+const bind = that => f => {
+	if (!bindMemo.has(that)) {
+		bindMemo.set(that, new WeakMap());
+	}
+	const bounds = bindMemo.get(that);
+	if (!bounds.has(f)) {
+		bounds.set(f, f.bind(that));
+	}
+	return bounds.get(f);
+};
+
 class Modals extends React.PureComponent {
 	constructor(props) {
 		super(props);
@@ -59,11 +71,11 @@ class Modals extends React.PureComponent {
 			modalDefaults: undefined,
 
 			actions: {
-				openConnectToServerModal: this.openConnectToServerModal.bind(this),
+				openConnectToServerModal: this.openConnectToServerModal,
 
-				openNewGraphObjectModal: this.openNewGraphObjectModal.bind(this),
-				openLoadModuleModal: this.openLoadModuleModal.bind(this),
-				openAddRemoteServerModal: this.openAddRemoteServerModal.bind(this),
+				openNewGraphObjectModal: this.openNewGraphObjectModal,
+				openLoadModuleModal: this.openLoadModuleModal,
+				openAddRemoteServerModal: this.openAddRemoteServerModal,
 			},
 		};
 		this.state = this.initialState;
@@ -73,7 +85,7 @@ class Modals extends React.PureComponent {
 
 	static getDerivedStateFromProps(props, state) {
 		return {
-			actions: merge(state.actions, map(a => a.bind(this), mapObjIndexed((f, name) => function (...args) {
+			actions: merge(state.actions, mapObjIndexed((f, name) => function (...args) {
 				const continuation = () => {
 					props[name](...args);
 					this.setState(this.initialState);
@@ -104,7 +116,7 @@ class Modals extends React.PureComponent {
 
 					return null;
 				},
-			}))),
+			})),
 		};
 	}
 
@@ -139,7 +151,7 @@ class Modals extends React.PureComponent {
 		const { actions, target, confirmation, continuation } = this.state;
 
 		return r(React.Fragment, [
-			...[].concat(children({ actions })),
+			...[].concat(children({ actions: map(bind(this), actions) })),
 
 			r(ConfirmationModal, {
 				target,
