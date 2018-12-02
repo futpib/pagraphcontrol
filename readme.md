@@ -2,7 +2,7 @@
 
 ## Screenshot
 
-![](https://i.imgur.com/A8gZ5Xf.png)
+![](https://i.imgur.com/rq4UJb2.png)
 
 ## Keyboard Shortcuts
 
