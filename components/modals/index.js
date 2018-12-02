@@ -73,7 +73,7 @@ class Modals extends React.PureComponent {
 
 	static getDerivedStateFromProps(props, state) {
 		return {
-			actions: merge(state.actions, mapObjIndexed((f, name) => function (...args) {
+			actions: merge(state.actions, map(a => a.bind(this), mapObjIndexed((f, name) => function (...args) {
 				const continuation = () => {
 					props[name](...args);
 					this.setState(this.initialState);
@@ -104,7 +104,7 @@ class Modals extends React.PureComponent {
 
 					return null;
 				},
-			})),
+			}))),
 		};
 	}
 
@@ -139,7 +139,7 @@ class Modals extends React.PureComponent {
 		const { actions, target, confirmation, continuation } = this.state;
 
 		return r(React.Fragment, [
-			...[].concat(children({ actions: map(a => a.bind(this), actions) })),
+			...[].concat(children({ actions })),
 
 			r(ConfirmationModal, {
 				target,

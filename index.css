@@ -100,8 +100,23 @@ div[tabindex="-1"]:focus {
 	border-color: var(--themeSelectedBgColor);
 }
 
-.view-wrapper .graph {
-	background: var(--themeBaseColor);
+.peaks {
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	pointer-events: none;
+}
+
+.view-wrapper.view-wrapper {
+	background: transparent;
+
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
 }
 
 .view-wrapper .grid-dot {

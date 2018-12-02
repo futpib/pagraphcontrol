@@ -31,6 +31,11 @@ class GraphView extends GraphViewBase {
 			_super_renderBackground: this.renderBackground,
 			renderBackground: this.constructor.prototype.renderBackground.bind(this),
 
+			_super_handleZoomStart: this.handleZoomStart,
+			handleZoomStart: this.constructor.prototype.handleZoomStart.bind(this),
+			_super_handleZoomEnd: this.handleZoomEnd,
+			handleZoomEnd: this.constructor.prototype.handleZoomEnd.bind(this),
+
 			_super_handleNodeMove: this.handleNodeMove,
 			handleNodeMove: this.constructor.prototype.handleNodeMove.bind(this),
 
@@ -164,6 +169,8 @@ class GraphView extends GraphViewBase {
 			onNodeMouseDown: this.props.onNodeMouseDown,
 			onNodeMouseEnter: this.handleNodeMouseEnter,
 			onNodeMouseLeave: this.handleNodeMouseLeave,
+			onNodeDragStart: this.props.onNodeDragStart,
+			onNodeDragEnd: this.props.onNodeDragEnd,
 			onNodeMove: this.handleNodeMove,
 			onNodeUpdate: this.handleNodeUpdate,
 			onNodeSelected: this.handleNodeSelected,
@@ -173,6 +180,20 @@ class GraphView extends GraphViewBase {
 			layoutEngine: this.layoutEngine,
 			viewWrapperElem: this.viewWrapper.current,
 		});
+	}
+
+	handleZoomStart(...args) {
+		if (this.props.onZoomStart) {
+			this.props.onZoomStart();
+		}
+		return this._super_handleZoomStart(...args);
+	}
+
+	handleZoomEnd(...args) {
+		if (this.props.onZoomEnd) {
+			this.props.onZoomEnd();
+		}
+		return this._super_handleZoomEnd(...args);
 	}
 
 	handleNodeMove(position, nodeId, shiftKey) {
@@ -254,6 +275,9 @@ class Node extends NodeBase {
 		super(props);
 
 		Object.assign(this, {
+			_super_handleDragStart: this.handleDragStart,
+			handleDragStart: this.constructor.prototype.handleDragStart.bind(this),
+
 			_super_handleDragEnd: this.handleDragEnd,
 			handleDragEnd: this.constructor.prototype.handleDragEnd.bind(this),
 
@@ -283,7 +307,17 @@ class Node extends NodeBase {
 		}
 	}
 
+	handleDragStart(...args) {
+		if (this.props.onNodeDragStart) {
+			this.props.onNodeDragStart(...args);
+		}
+		return this._super_handleDragStart(...args);
+	}
+
 	handleDragEnd(...args) {
+		if (this.props.onNodeDragEnd) {
+			this.props.onNodeDragEnd(...args);
+		}
 		this.oldSibling = null;
 		return this._super_handleDragEnd(...args);
 	}

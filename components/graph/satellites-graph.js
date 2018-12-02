@@ -59,7 +59,7 @@ const satelliteSpread = 36;
 
 const satelliteEdgeToOriginalEdge = new WeakMap();
 
-class GraphView extends React.Component {
+class SatellitesGraphView extends React.Component {
 	constructor(props) {
 		super(props);
 
@@ -116,10 +116,17 @@ class GraphView extends React.Component {
 			return satelliteNode;
 		}, edges), originalEdgesByTargetNodeKey);
 
+		const satelliteNodes = flatten(map(node => {
+			const satelliteNodes = satelliteNodesByTargetNodeKey[node.id] || [];
+			SatellitesGraphView.repositionSatellites(node, satelliteNodes);
+			return satelliteNodes.concat(node);
+		}, props.nodes));
+
 		return {
 			originalEdgesByTargetNodeKey,
 			satelliteNodesByTargetNodeKey,
 			satelliteEdges,
+			satelliteNodes,
 
 			selected,
 			moved,
@@ -215,20 +222,13 @@ class GraphView extends React.Component {
 	}
 
 	render() {
-		const { nodeKey } = this.props;
 		const {
-			satelliteNodesByTargetNodeKey,
 			satelliteEdges: edges,
+			satelliteNodes: nodes,
 
 			selected,
 			moved,
 		} = this.state;
-
-		const nodes = flatten(map(node => {
-			const satelliteNodes = satelliteNodesByTargetNodeKey[node[nodeKey]] || [];
-			this.constructor.repositionSatellites(node, satelliteNodes);
-			return satelliteNodes.concat(node);
-		}, this.props.nodes));
 
 		return r(GraphViewBase, {
 			...this.props,
@@ -261,4 +261,4 @@ class GraphView extends React.Component {
 	}
 }
 
-module.exports = { GraphView };
+module.exports = { SatellitesGraphView };

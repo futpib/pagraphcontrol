@@ -156,6 +156,15 @@ class Preferences extends React.Component {
 
 			r.div([
 				r(Checkbox, {
+					checked: this.props.preferences.hideLiveVolumePeaks,
+					onChange: () => this.props.actions.toggle('hideLiveVolumePeaks'),
+				}, 'Hide live volume peaks'),
+			]),
+
+			r.hr(),
+
+			r.div([
+				r(Checkbox, {
 					checked: this.props.preferences.hideOnScreenButtons,
 					onChange: () => this.props.actions.toggle('hideOnScreenButtons'),
 				}, 'Hide on-screen buttons'),

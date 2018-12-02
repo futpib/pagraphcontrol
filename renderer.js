@@ -18,12 +18,15 @@ const ServerInfo = require('./components/server-info');
 const { HotKeys } = require('./components/hot-keys');
 const { MenuProvider } = require('./components/menu');
 const Modals = require('./components/modals');
+const { VolumePeaksProvider, VolumePeaksConsumer } = require('./components/volume-peaks-provider');
 
 const theme = require('./utils/theme');
 
 const Root = () => r(ReduxProvider, {
 	store: createStore(),
-}, r(HotKeys, {
+}, r(VolumePeaksProvider, {
+}, r(VolumePeaksConsumer, {
+}, peaks => r(HotKeys, {
 }, ({
 	graphRef,
 	cardsRef,
@@ -35,14 +38,14 @@ const Root = () => r(ReduxProvider, {
 	...modalsActions,
 	...hotKeysActions,
 }, [
+	r(Graph, { ref: graphRef, peaks, ...modalsActions }),
 	r(TopLeftOnScreenButtonGroup, hotKeysActions),
-	r(Graph, { ref: graphRef, ...modalsActions }),
 	r(Cards, { ref: cardsRef }),
 	r(Network, { ref: networkRef, ...modalsActions }),
 	r(Preferences, { ref: preferencesRef }),
 	r(ServerInfo),
 	r(Log),
-]))));
+]))))));
 
 Object.entries(theme.colors).forEach(([ key, value ]) => {
 	document.body.style.setProperty('--' + key, value);

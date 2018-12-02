@@ -78,12 +78,14 @@ const { primaryPulseServer } = require('../../reducers/pulse');
 const { keyMap } = require('../hot-keys');
 
 const {
-	GraphView,
+	SatellitesGraphView,
 } = require('./satellites-graph');
 
 const {
 	Edge,
 } = require('./base');
+
+const Peaks = require('./peaks');
 
 const LayoutEngine = require('./layout-engine');
 
@@ -268,7 +270,7 @@ const renderDefs = () => r(React.Fragment, [
 ]);
 
 const renderBackground = ({
-	gridSize = 40960,
+	gridSize = 40960 / 4,
 	onMouseDown,
 }) => r.rect({
 	className: 'background',
@@ -717,14 +719,19 @@ class GraphObjectContextMenu extends React.PureComponent {
 
 const backgroundSymbol = Symbol('graph.backgroundSymbol');
 
-class Graph extends React.Component {
+class Graph extends React.PureComponent {
 	constructor(props) {
 		super(props);
+
+		this.satellitesGraphViewRef = React.createRef();
 
 		this.state = {
 			selected: null,
 			moved: null,
 			contexted: null,
+
+			isDraggingNode: false,
+			isZooming: false,
 		};
 
 		this._requestedIcons = new Set();
@@ -732,11 +739,16 @@ class Graph extends React.Component {
 		Object.assign(this, {
 			onBackgroundMouseDown: this.onBackgroundMouseDown.bind(this),
 
+			onZoomStart: this.onZoomStart.bind(this),
+			onZoomEnd: this.onZoomEnd.bind(this),
+
 			onSelectNode: this.onSelectNode.bind(this),
 			onCreateNode: this.onCreateNode.bind(this),
 			onUpdateNode: this.onUpdateNode.bind(this),
 			onDeleteNode: this.onDeleteNode.bind(this),
 			onNodeMouseDown: this.onNodeMouseDown.bind(this),
+			onNodeDragStart: this.onNodeDragStart.bind(this),
+			onNodeDragEnd: this.onNodeDragEnd.bind(this),
 
 			onSelectEdge: this.onSelectEdge.bind(this),
 			canCreateEdge: this.canCreateEdge.bind(this),
@@ -803,6 +815,7 @@ class Graph extends React.Component {
 					if (binary.startsWith('pavucontrol') ||
 						binary.startsWith('kmix') ||
 						binary === 'pulseaudio' ||
+						name === 'papeaks' ||
 						name === 'paclient.js'
 					) {
 						return false;
@@ -855,19 +868,6 @@ class Graph extends React.Component {
 			moved,
 			contexted,
 		};
-	}
-
-	shouldComponentUpdate(nextProps, nextState) {
-		return !(
-			(nextProps.serverInfo === this.props.serverInfo) &&
-				(nextProps.objects === this.props.objects) &&
-				(nextProps.infos === this.props.infos) &&
-				(nextProps.preferences === this.props.preferences) &&
-				(nextProps.icons === this.props.icons) &&
-				(nextState.selected === this.state.selected) &&
-				(nextState.contexted === this.state.contexted) &&
-				(nextState.moved === this.state.moved)
-		);
 	}
 
 	componentDidMount() {
@@ -940,6 +940,18 @@ class Graph extends React.Component {
 				contexted: data,
 			});
 		}
+	}
+
+	onNodeDragStart() {
+		this.setState({
+			isDraggingNode: true,
+		});
+	}
+
+	onNodeDragEnd() {
+		this.setState({
+			isDraggingNode: false,
+		});
 	}
 
 	onSelectEdge(selected) {
@@ -1111,6 +1123,18 @@ class Graph extends React.Component {
 
 	focus() {
 		this.graphViewElement.focus();
+	}
+
+	onZoomStart() {
+		this.setState({
+			isZooming: true,
+		});
+	}
+
+	onZoomEnd() {
+		this.setState({
+			isZooming: false,
+		});
 	}
 
 	hotKeyEscape() {
@@ -1397,12 +1421,29 @@ class Graph extends React.Component {
 	render() {
 		const { nodes, edges } = this.state;
 
+		const satellitesGraphViewState = path(
+			[ 'current', 'state' ],
+			this.satellitesGraphViewRef,
+		);
+
 		return r(HotKeys, {
 			handlers: map(f => bind(f, this), pick(keys(keyMap), this)),
 		}, r.div({
 			id: 'graph',
 		}, [
-			r(GraphView, {
+			!this.props.preferences.hideLiveVolumePeaks && r(Peaks, {
+				key: 'peaks',
+				nodes: defaultTo([], prop('satelliteNodes', satellitesGraphViewState)),
+				edges: defaultTo([], prop('satelliteEdges', satellitesGraphViewState)),
+				accommodateGraphAnimation: this.state.isDraggingNode || this.state.isZooming,
+				peaks: this.props.peaks,
+			}),
+
+			r(SatellitesGraphView, {
+				key: 'graph',
+
+				ref: this.satellitesGraphViewRef,
+
 				nodeKey: 'id',
 				edgeKey: 'id',
 
@@ -1418,11 +1459,16 @@ class Graph extends React.Component {
 
 				onBackgroundMouseDown: this.onBackgroundMouseDown,
 
+				onZoomStart: this.onZoomStart,
+				onZoomEnd: this.onZoomEnd,
+
 				onSelectNode: this.onSelectNode,
 				onCreateNode: this.onCreateNode,
 				onUpdateNode: this.onUpdateNode,
 				onDeleteNode: this.onDeleteNode,
 				onNodeMouseDown: this.onNodeMouseDown,
+				onNodeDragStart: this.onNodeDragStart,
+				onNodeDragEnd: this.onNodeDragEnd,
 
 				onSelectEdge: this.onSelectEdge,
 				canCreateEdge: this.canCreateEdge,
@@ -1451,6 +1497,8 @@ class Graph extends React.Component {
 			this.state.contexted && (
 				this.state.contexted === backgroundSymbol ?
 					r(BackgroundContextMenu, {
+						key: 'background-context-menu',
+
 						onClose: this.onContextMenuClose,
 
 						onLoadModule: this.props.openLoadModuleModal,
@@ -1460,6 +1508,8 @@ class Graph extends React.Component {
 						onLoadModuleNullSink: this.onLoadModuleNullSink,
 					}) :
 					r(GraphObjectContextMenu, {
+						key: 'graph-object-context-menu',
+
 						onClose: this.onContextMenuClose,
 
 						canSetAsDefault: this.canContextMenuSetAsDefault,

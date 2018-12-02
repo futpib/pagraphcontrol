@@ -29,6 +29,8 @@ const initialState = {
 	maxVolume: 1.5,
 	volumeStep: 1 / 20,
 
+	hideLiveVolumePeaks: false,
+
 	doNotAskForConfirmations: false,
 	showDebugInfo: false,
 
