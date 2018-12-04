@@ -71,6 +71,9 @@ class Peaks extends React.Component {
 	}
 
 	get targetDelay() {
+		if (window.document.hidden) {
+			return 2 * 1000;
+		}
 		if (this.props.accommodateGraphAnimation) {
 			return 1000 / 70;
 		}
