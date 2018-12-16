@@ -588,7 +588,7 @@ const ClientText = connect(
 const ModuleText = ({ dgo, pai }) => r(React.Fragment, [
 	r.div({
 		className: 'node-name',
-		title: pai.properties.module.description,
+		title: path([ 'properties', 'module', 'description' ], pai) || pai.name,
 	}, pai.name),
 	r(DebugText, { dgo, pai }),
 ]);
