@@ -17,10 +17,11 @@ const PA_SUBSCRIPTION_EVENT_SINK_INPUT = 0x0002;
 const VolumePeaksContext = React.createContext(null);
 
 function spawnProcess({ onPeak, onExit }) {
-	const process = spawn('/home/futpib/code/papeaks/target/release/papeaks', [
+	const process = spawn('papeaks', [
 		'--output',
 		'binary',
 	], {
+		shell: true,
 		stdio: [ 'ignore', 'pipe', 'inherit' ],
 	});
 
