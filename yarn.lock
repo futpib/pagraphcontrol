@@ -5731,10 +5731,10 @@ react-addons-css-transition-group@^15.6.2:
   dependencies:
     react-transition-group "^1.2.0"
 
-react-digraph@^5.3.7:
-  version "5.3.7"
-  resolved "https://registry.yarnpkg.com/react-digraph/-/react-digraph-5.3.7.tgz#9ef1742f599a7e1fa0b6240419f293229e8ab507"
-  integrity sha512-Hbj84z6ui4Wo2nqObE8xak5FiBzxrM4xokgMiULZmafJg7/E7+8lWW6u65Uvs9NUm3NAet79B1KG4KxxKhyUMg==
+react-digraph@^6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/react-digraph/-/react-digraph-6.0.0.tgz#f9bc73525aac629fe7dee16331263167f430bce8"
+  integrity sha512-wMWoakhqVVm/sGY63+TyIJurdDGSrfo0ArfMyBAphz9ZXBRCQ7X1x7WFaWqYpU7YhzXSV7u6HXuvleW6NMCQrg==
   dependencies:
     d3 "^5.7.0"
     dagre "^0.8.2"
