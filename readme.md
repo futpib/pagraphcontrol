@@ -26,21 +26,21 @@
 yaourt pagraphcontrol-git
 ```
 
-## Optional dependencies
+### Ubuntu (manual build) 
 
- ### PulseAudio volume peaks
-For displaying audio peaks at the connectors
-https://github.com/futpib/papeaks
-
- ## Building
 ```bash
 sudo apt install npm
 sudo npm install -g yarn
+
 git clone https://github.com/futpib/pagraphcontrol.git
 cd pagraphcontrol
+
 yarn install
 yarn build
 ```
+
+#### PulseAudio volume peaks (optional)
+To see audio peaks build [papeaks](https://github.com/futpib/papeaks) and put it on your `PATH`.
 
 ## See Also
 
