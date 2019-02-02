@@ -26,8 +26,8 @@ if (gtk) {
 		gtk.Settings['gtk-icon-theme-name'],
 		gtk.Settings['gtk-fallback-icon-theme'],
 		'hicolor',
-	];
-	themeName = gtk.Settings['gtk-theme-name'];
+	].filter(Boolean);
+	themeName = gtk.Settings['gtk-theme-name'] || themeName;
 }
 
 const themePaths = [
