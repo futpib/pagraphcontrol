@@ -58,6 +58,9 @@ module.exports = createActionCreators({
 
 		SET_CARD_PROFILE: (index, profileName) => ({ index, profileName }),
 
+		SET_SINK_PORT: (index, portName) => ({ index, portName }),
+		SET_SOURCE_PORT: (index, portName) => ({ index, portName }),
+
 		SET_SINK_MUTE: (index, muted) => ({ index, muted }),
 		SET_SOURCE_MUTE: (index, muted) => ({ index, muted }),
 		SET_SINK_INPUT_MUTE_BY_INDEX: (index, muted) => ({ index, muted }),

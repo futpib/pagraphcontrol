@@ -252,6 +252,15 @@ const createPulseClient = (store, pulseServerId = primaryPulseServer) => {
 			return state;
 		},
 
+		[pulseActions.setSinkPort]: (state, { payload: { index, portName } }) => {
+			pa.setSinkPort(index, portName, handleError);
+			return state;
+		},
+		[pulseActions.setSourcePort]: (state, { payload: { index, portName } }) => {
+			pa.setSourcePort(index, portName, handleError);
+			return state;
+		},
+
 		[pulseActions.setSinkMute]: (state, { payload: { index, muted } }) => {
 			pa.setSinkMute(index, muted, handleError);
 			return state;

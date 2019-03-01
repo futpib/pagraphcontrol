@@ -4,6 +4,7 @@ const {
 	map,
 	path,
 	sortBy,
+	filter,
 } = require('ramda');
 
 const React = require('react');
@@ -17,9 +18,53 @@ const { pulse: pulseActions } = require('../../actions');
 
 const { primaryPulseServer } = require('../../reducers/pulse');
 
+const { createGetCardSinks, createGetCardSources } = require('../../selectors');
+
 const Button = require('../button');
 const Label = require('../label');
 const Select = require('../select');
+
+const SinksOrSourcesPresenter = ({ sinksOrSources, setSinkOrSourcePort }) => map(sinkOrSource => r(Label, {
+	key: sinkOrSource.index,
+	title: sinkOrSource.name,
+}, [
+	r(Label, [
+		path([ 'properties', 'device', 'description' ], sinkOrSource),
+	]),
+
+	r(Select, {
+		options: sortBy(p => -p.priority, sinkOrSource.ports),
+		optionValue: p => p.name,
+		optionText: p => [
+			p.description,
+			p.availability === 'unavailable' && '(unavailable)',
+		]
+			.filter(Boolean)
+			.join(' '),
+		value: sinkOrSource.activePortName,
+		onChange: e => setSinkOrSourcePort(sinkOrSource.index, e.target.value),
+	}),
+]), values(filter(s => s.ports.length > 0, sinksOrSources)));
+
+const CardSinks = connect(
+	(state, { cardIndex }) => ({
+		kind: 'sinks',
+		sinksOrSources: createGetCardSinks(cardIndex)(state),
+	}),
+	dispatch => ({
+		setSinkOrSourcePort: (...args) => dispatch(pulseActions.setSinkPort(...args)),
+	}),
+)(SinksOrSourcesPresenter);
+
+const CardSources = connect(
+	(state, { cardIndex }) => ({
+		kind: 'sources',
+		sinksOrSources: createGetCardSources(cardIndex)(state),
+	}),
+	dispatch => ({
+		setSinkOrSourcePort: (...args) => dispatch(pulseActions.setSourcePort(...args)),
+	}),
+)(SinksOrSourcesPresenter);
 
 class Cards extends React.Component {
 	constructor(props) {
@@ -63,27 +108,35 @@ class Cards extends React.Component {
 				r.hr(),
 			]),
 
-			...map(card => r(Label, {
-				title: card.name,
-			}, [
-				r(Label, [
-					path([ 'properties', 'device', 'description' ], card),
+			...map(card => r(React.Fragment, [
+				r(Label, {
+					title: card.name,
+				}, [
+					r(Label, [
+						path([ 'properties', 'device', 'description' ], card),
+					]),
+
+					r(Select, {
+						options: sortBy(p => -p.priority, card.profiles),
+						optionValue: p => p.name,
+						optionText: p => [
+							p.description,
+							!p.available && '(unavailable)',
+						]
+							.filter(Boolean)
+							.join(' '),
+						value: card.activeProfileName,
+						onChange: e => {
+							this.props.actions.setCardProfile(card.index, e.target.value);
+						},
+					}),
 				]),
 
-				r(Select, {
-					options: sortBy(p => -p.priority, card.profiles),
-					optionValue: p => p.name,
-					optionText: p => [
-						p.description,
-						!p.available && '(unavailable)',
-					]
-						.filter(Boolean)
-						.join(' '),
-					value: card.activeProfileName,
-					onChange: e => {
-						this.props.actions.setCardProfile(card.index, e.target.value);
-					},
-				}),
+				r(CardSinks, { cardIndex: card.index }),
+
+				r(CardSources, { cardIndex: card.index }),
+
+				r.hr(),
 			]), values(this.props.cards)),
 
 			this.props.preferences.showDebugInfo && r.pre({

@@ -156,10 +156,10 @@
   dependencies:
     arrify "^1.0.1"
 
-"@futpib/paclient@^0.0.9":
-  version "0.0.9"
-  resolved "https://registry.yarnpkg.com/@futpib/paclient/-/paclient-0.0.9.tgz#406949cea4543725ab4d25267dad8e4cf8a8a423"
-  integrity sha512-uNMUcd4XXJy1HrT7TP/dxCx6KUquBZyF0UQH7dWDT0VH/tmYmkpOHnBUcVjGVSG3CWWtAlqtw+vsk+N+1aBRMw==
+"@futpib/paclient@^0.0.10":
+  version "0.0.10"
+  resolved "https://registry.yarnpkg.com/@futpib/paclient/-/paclient-0.0.10.tgz#02bed3518b5ae733fae249586f960cdc83de0a50"
+  integrity sha512-B68S61I6EWUYpOYXCkBlWJAoT/qjVFf2dQTeqD2SDmDw3jyw4Pes1RwYK1hxq5Qg3rbvdIURNwqhgf6syOoCZA==
 
 "@futpib/react-electron-menu@^0.3.1":
   version "0.3.1"

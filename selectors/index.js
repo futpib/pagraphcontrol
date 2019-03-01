@@ -72,6 +72,16 @@ const getDefaultSinkPai = createSelector(
 	(sinks, defaultSinkName) => find(propEq('name', defaultSinkName), values(sinks)),
 );
 
+const createGetCardSinks = cardIndex => createSelector(
+	state => state.pulse[primaryPulseServer].infos.sinks,
+	sinks => filter(propEq('cardIndex', cardIndex), sinks),
+);
+
+const createGetCardSources = cardIndex => createSelector(
+	state => state.pulse[primaryPulseServer].infos.sources,
+	sources => filter(propEq('cardIndex', cardIndex), sources),
+);
+
 module.exports = {
 	getPaiByTypeAndIndex,
 	getPaiByTypeAndIndexFromInfos,
@@ -89,4 +99,7 @@ module.exports = {
 
 	getDefaultSinkPai,
 	getDefaultSourcePai,
+
+	createGetCardSinks,
+	createGetCardSources,
 };
