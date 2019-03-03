@@ -24,7 +24,7 @@ const Button = require('../button');
 const Label = require('../label');
 const Select = require('../select');
 
-const SinksOrSourcesPresenter = ({ sinksOrSources, setSinkOrSourcePort }) => map(sinkOrSource => r(Label, {
+const SinksOrSourcesPresenter = ({ sinksOrSources, setSinkOrSourcePort }) => map(sinkOrSource => sinkOrSource.ports.length > 1 && r(Label, {
 	key: sinkOrSource.index,
 	title: sinkOrSource.name,
 }, [
