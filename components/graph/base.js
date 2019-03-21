@@ -254,6 +254,13 @@ class GraphView extends GraphViewBase {
 			return;
 		}
 
+		// XXX WORKAROUND: this can be called from `requestAnimationFrame` callback after the edge has already been removed.
+		// Might be a react-digraph bug.
+		const edgeKey = [ edge.source, edge.target ].join('_');
+		if (edge.source && edge.target && !this.state.edgesMap[edgeKey]) {
+			return;
+		}
+
 		const idVar = edge.target ? `${edge.source}-${edge.target}` : 'custom';
 		const id = `edge-${idVar}`;
 		const element = this.getEdgeComponent(edge, nodeMoving);
