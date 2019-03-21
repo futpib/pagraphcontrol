@@ -9,7 +9,7 @@ const {
 
 const React = require('react');
 
-const ReactCSSTransitionGroup = require('react-addons-css-transition-group');
+const { CSSTransitionGroup } = require('react-transition-group');
 
 const r = require('r-dom');
 
@@ -62,7 +62,7 @@ class Log extends React.Component {
 	render() {
 		return r.div({
 			className: 'log',
-		}, r(ReactCSSTransitionGroup, {
+		}, r(CSSTransitionGroup, {
 			transitionName: 'log-item-transition',
 			transitionEnterTimeout: 300,
 			transitionLeaveTimeout: 2000,
