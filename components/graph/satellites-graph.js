@@ -73,7 +73,6 @@ class SatellitesGraphView extends React.Component {
 		this.graphViewRef = this.props.graphViewRef || React.createRef();
 
 		Object.assign(this, {
-			onSwapEdge: this.onSwapEdge.bind(this),
 			onNodeMove: this.onNodeMove.bind(this),
 
 			onSelectEdge: this.onSelectEdge.bind(this),
@@ -148,17 +147,6 @@ class SatellitesGraphView extends React.Component {
 				(satelliteSpread * plusMinus(i)) +
 				((satelliteSpread / 2) * ((satelliteNodes.length + 1) % 2));
 		});
-	}
-
-	onSwapEdge(sourceNode, targetNode, edge) {
-		this.props.onSwapEdge(sourceNode, targetNode, edge);
-
-		const { nodeKey } = this.props;
-
-		const createdEdgeId = `edge-${sourceNode[nodeKey]}-${targetNode[nodeKey]}-container`;
-		const createdEdge = document.getElementById(createdEdgeId);
-		createdEdge.remove();
-		this.graphViewRef.current.forceUpdate();
 	}
 
 	onCreateEdge(source, target) {
@@ -241,7 +229,7 @@ class SatellitesGraphView extends React.Component {
 			nodes,
 			edges,
 
-			onSwapEdge: this.onSwapEdge,
+			onSwapEdge: this.props.onSwapEdge,
 			onNodeMove: this.onNodeMove,
 
 			onSelectEdge: this.onSelectEdge,
