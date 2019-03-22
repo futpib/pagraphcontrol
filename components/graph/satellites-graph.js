@@ -1,4 +1,3 @@
-/* global document */
 
 const {
 	map,
