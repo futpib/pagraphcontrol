@@ -93,8 +93,8 @@ class GraphView extends GraphViewBase {
 	}
 
 	shouldComponentUpdate(nextProps, nextState) {
-		return super.shouldComponentUpdate(nextProps, nextState) ||
-			this.state.edgeEndNode !== nextState.edgeEndNode;
+		return super.shouldComponentUpdate(nextProps, nextState)
+			|| this.state.edgeEndNode !== nextState.edgeEndNode;
 	}
 
 	componentDidUpdate(prevProps, prevState) {
@@ -102,11 +102,12 @@ class GraphView extends GraphViewBase {
 
 		if (this.state.edgeEndNode !== prevState.edgeEndNode) {
 			if (prevState.edgeEndNode) {
-				const prevNode = document.getElementById('node-' + prevState.edgeEndNode[nodeKey]);
+				const prevNode = document.querySelector('#node-' + prevState.edgeEndNode[nodeKey]);
 				prevNode.classList.remove('targeted');
 			}
+
 			if (this.state.edgeEndNode) {
-				const node = document.getElementById('node-' + this.state.edgeEndNode[nodeKey]);
+				const node = document.querySelector('#node-' + this.state.edgeEndNode[nodeKey]);
 				node.classList.add('targeted');
 			}
 		}
@@ -120,13 +121,13 @@ class GraphView extends GraphViewBase {
 			}
 		}
 
-		if (this.props.selected &&
-			this.props.moved &&
-			(
-				prevProps.selected !== this.props.selected ||
-				prevProps.moved !== this.props.moved
-			) &&
-			this.state.draggedEdge
+		if (this.props.selected
+			&& this.props.moved
+			&& (
+				prevProps.selected !== this.props.selected
+				|| prevProps.moved !== this.props.moved
+			)
+			&& this.state.draggedEdge
 		) {
 			this.dragEdge();
 		}
@@ -141,6 +142,7 @@ class GraphView extends GraphViewBase {
 				this.props.selected.y,
 			];
 		}
+
 		return super.getMouseCoordinates();
 	}
 
@@ -153,6 +155,7 @@ class GraphView extends GraphViewBase {
 				onMouseDown: onBackgroundMouseDown,
 			});
 		}
+
 		return this._super_renderBackground();
 	}
 
@@ -186,6 +189,7 @@ class GraphView extends GraphViewBase {
 		if (this.props.onZoomStart) {
 			this.props.onZoomStart();
 		}
+
 		return this._super_handleZoomStart(...args);
 	}
 
@@ -193,6 +197,7 @@ class GraphView extends GraphViewBase {
 		if (this.props.onZoomEnd) {
 			this.props.onZoomEnd();
 		}
+
 		return this._super_handleZoomEnd(...args);
 	}
 
@@ -267,8 +272,8 @@ class GraphView extends GraphViewBase {
 		this.renderEdge(id, element, edge, nodeMoving);
 
 		if (this.isEdgeSelected(edge)) {
-			const container = document.getElementById(`${id}-container`);
-			container.parentNode.appendChild(container);
+			const container = document.querySelector(`#${id}-container`);
+			container.parentNode.append(container);
 		}
 	}
 }
@@ -318,6 +323,7 @@ class Node extends NodeBase {
 		if (this.props.onNodeDragStart) {
 			this.props.onNodeDragStart(...args);
 		}
+
 		return this._super_handleDragStart(...args);
 	}
 
@@ -325,6 +331,7 @@ class Node extends NodeBase {
 		if (this.props.onNodeDragEnd) {
 			this.props.onNodeDragEnd(...args);
 		}
+
 		this.oldSibling = null;
 		return this._super_handleDragEnd(...args);
 	}

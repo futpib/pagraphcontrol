@@ -16,6 +16,7 @@ const formatModuleArgs = object => map(([ k, v ]) => {
 	} else {
 		v = v.join(',');
 	}
+
 	return `${k}=${v}`;
 }, toPairs(object)).join(' ');
 

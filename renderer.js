@@ -51,4 +51,4 @@ Object.entries(theme.colors).forEach(([ key, value ]) => {
 	document.body.style.setProperty('--' + key, value);
 });
 
-render(r(Root), document.getElementById('root'));
+render(r(Root), document.querySelector('#root'));

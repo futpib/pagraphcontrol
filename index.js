@@ -8,6 +8,9 @@ const theme = require('./utils/theme');
 app.on('ready', () => {
 	const win = new BrowserWindow({
 		backgroundColor: theme.colors.themeBaseColor,
+		webPreferences: {
+			nodeIntegration: true,
+		},
 	});
 	win.setAutoHideMenuBar(true);
 	win.setMenuBarVisibility(false);
@@ -21,7 +24,7 @@ app.on('ready', () => {
 		const { default: installExtension, REACT_DEVELOPER_TOOLS } = require('electron-devtools-installer');
 
 		installExtension(REACT_DEVELOPER_TOOLS)
-			.then(name => console.log(`Added Extension:  ${name}`))
+			.then(name => console.log(`Added Extension:	 ${name}`))
 			.catch(error => console.error(error));
 	}
 });

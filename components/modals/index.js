@@ -13,8 +13,16 @@ const PropTypes = require('prop-types');
 
 const Modal = require('react-modal');
 
-const { connect } = require('react-redux');
+const {
+	connect,
+	ReactReduxContext: { Consumer: ReduxConsumer },
+} = require('react-redux');
 const { bindActionCreators } = require('redux');
+
+const {
+	compose,
+	fromRenderProps,
+} = require('recompose');
 
 const {
 	pulse: pulseActions,
@@ -47,10 +55,12 @@ const bind = that => f => {
 	if (!bindMemo.has(that)) {
 		bindMemo.set(that, new WeakMap());
 	}
+
 	const bounds = bindMemo.get(that);
 	if (!bounds.has(f)) {
 		bounds.set(f, f.bind(that));
 	}
+
 	return bounds.get(f);
 };
 
@@ -196,10 +206,17 @@ Modals.contextTypes = {
 	store: PropTypes.any,
 };
 
-module.exports = connect(
-	state => ({
-		infos: state.pulse[primaryPulseServer].infos,
-		preferences: state.preferences,
-	}),
-	dispatch => bindActionCreators(merge(pulseActions, preferencesActions), dispatch),
+module.exports = compose(
+	connect(
+		state => ({
+			infos: state.pulse[primaryPulseServer].infos,
+			preferences: state.preferences,
+		}),
+		dispatch => bindActionCreators(merge(pulseActions, preferencesActions), dispatch),
+	),
+
+	fromRenderProps(
+		ReduxConsumer,
+		({ store }) => ({ store }),
+	),
 )(Modals);

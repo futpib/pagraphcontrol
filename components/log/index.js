@@ -9,7 +9,7 @@ const {
 
 const React = require('react');
 
-const { CSSTransitionGroup } = require('react-transition-group');
+const { TransitionGroup, CSSTransition } = require('react-transition-group');
 
 const r = require('r-dom');
 
@@ -49,6 +49,7 @@ class Log extends React.Component {
 		if (item.type === 'error') {
 			return `${item.error.name}: ${item.error.message}`;
 		}
+
 		return actionTypeText[item.action] || item.action;
 	}
 
@@ -62,19 +63,18 @@ class Log extends React.Component {
 	render() {
 		return r.div({
 			className: 'log',
-		}, r(CSSTransitionGroup, {
-			transitionName: 'log-item-transition',
-			transitionEnterTimeout: 300,
-			transitionLeaveTimeout: 2000,
-		}, compose(
-			map(item => r.div({
+		}, r(TransitionGroup, compose(
+			map(item => r(CSSTransition, {
 				key: weakmapId(item),
+				className: 'log-item-transition',
+				timeout: { enter: 300, leave: 2000 },
+			}, r.div({
 				classSet: {
 					'log-item': true,
 					'log-item-error': item.type === 'error',
 					'log-item-info': item.type === 'info',
 				},
-			}, this.itemText(item))),
+			}, this.itemText(item)))),
 			filter(item => this.shouldShowItem(item)),
 		)(this.props.log.items)));
 	}

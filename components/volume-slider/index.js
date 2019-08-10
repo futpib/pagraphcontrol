@@ -104,9 +104,9 @@ module.exports = class VolumeSlider extends React.Component {
 			draggingX,
 		} = this.state;
 
-		const x = draggingX === null ?
-			((height / 2) + vol2pix(value, maxVolume)) :
-			draggingX;
+		const x = draggingX === null
+			? ((height / 2) + vol2pix(value, maxVolume))
+			: draggingX;
 
 		this._lastRenderedX = x;
 

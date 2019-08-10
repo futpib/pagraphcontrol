@@ -207,5 +207,5 @@ module.exports = connect(
 		actions: bindActionCreators(preferencesActions, dispatch),
 	}),
 	null,
-	{ withRef: true },
+	{ forwardRef: true },
 )(Preferences);

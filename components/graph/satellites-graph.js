@@ -140,11 +140,12 @@ class SatellitesGraphView extends React.Component {
 				satelliteNode.y = position.y;
 				return;
 			}
+
 			satelliteNode.x = position.x;
-			satelliteNode.y = position.y +
-				offsetY +
-				(satelliteSpread * plusMinus(i)) +
-				((satelliteSpread / 2) * ((satelliteNodes.length + 1) % 2));
+			satelliteNode.y = position.y
+				+ offsetY
+				+ (satelliteSpread * plusMinus(i))
+				+ ((satelliteSpread / 2) * ((satelliteNodes.length + 1) % 2));
 		});
 	}
 

@@ -240,5 +240,5 @@ module.exports = connect(
 		actions: bindActionCreators(pulseActions, dispatch),
 	}),
 	null,
-	{ withRef: true },
+	{ forwardRef: true },
 )(Cards);

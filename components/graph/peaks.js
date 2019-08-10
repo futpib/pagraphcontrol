@@ -8,7 +8,7 @@ const PIXI = require('pixi.js');
 
 const theme = require('../../utils/theme');
 
-PIXI.ticker.shared.autoStart = false;
+PIXI.Ticker.shared.autoStart = false;
 
 class Peaks extends React.Component {
 	constructor(props) {
@@ -25,24 +25,24 @@ class Peaks extends React.Component {
 	}
 
 	componentDidMount() {
-		this.app = new PIXI.Application(window.innerWidth, window.innerHeight, {
+		this.app = new PIXI.Application({
 			autoStart: false,
 			transparent: true,
 		});
 		this.app.ticker.add(this.handleTick);
 
-		this.trailTexture = PIXI.Texture.fromImage('assets/trail.png');
+		this.trailTexture = PIXI.Texture.from('assets/trail.png');
 		this.points = [
 			new PIXI.Point(0, 0),
 			new PIXI.Point(100, 100),
 		];
-		this.rope = new PIXI.mesh.Rope(this.trailTexture, this.points);
+		this.rope = new PIXI.SimpleRope(this.trailTexture, this.points);
 		this.rope.blendmode = PIXI.BLEND_MODES.ADD;
 		this.app.stage.addChild(this.rope);
 
 		this.ropes = {};
 
-		this.containerRef.current.appendChild(this.app.view);
+		this.containerRef.current.append(this.app.view);
 
 		this.peaks = {};
 		this.props.peaks.on('peak', this.handlePeak);
@@ -51,6 +51,7 @@ class Peaks extends React.Component {
 		this.view = this.graph.querySelector('.view');
 
 		window.addEventListener('resize', this.handleResize);
+		this.handleResize();
 
 		this.lastAnimationFrameTimeStamp = 0;
 		this.requestAnimationFrame();
@@ -74,9 +75,11 @@ class Peaks extends React.Component {
 		if (window.document.hidden) {
 			return 2 * 1000;
 		}
+
 		if (this.props.accommodateGraphAnimation) {
 			return 1000 / 70;
 		}
+
 		return 1000 / 25;
 	}
 
@@ -120,7 +123,7 @@ class Peaks extends React.Component {
 					p(target),
 					p(source),
 				];
-				const rope = new PIXI.mesh.Rope(this.trailTexture, points);
+				const rope = new PIXI.SimpleRope(this.trailTexture, points);
 				rope.blendmode = PIXI.BLEND_MODES.ADD;
 				rope.alpha = peak === undefined ? 0 : peak ** (1 / 3);
 				rope.tint = parseInt(theme.colors.themeSelectedBgColor.replace(/#/g, ''), 16);

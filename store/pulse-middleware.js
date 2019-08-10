@@ -42,6 +42,7 @@ function getFnFromType(type) {
 		default:
 			throw new Error('Unexpected type: ' + type);
 	}
+
 	return 'get' + fn[0].toUpperCase() + fn.slice(1);
 }
 
@@ -49,14 +50,17 @@ function setSinkChannelVolume(pa, store, index, channelIndex, volume, cb) {
 	const pai = getPaiByTypeAndIndex('sink', index)(store.getState());
 	pa.setSinkVolumes(index, pai.channelVolumes.map((v, i) => i === channelIndex ? volume : v), cb);
 }
+
 function setSourceChannelVolume(pa, store, index, channelIndex, volume, cb) {
 	const pai = getPaiByTypeAndIndex('source', index)(store.getState());
 	pa.setSourceVolumes(index, pai.channelVolumes.map((v, i) => i === channelIndex ? volume : v), cb);
 }
+
 function setSinkInputChannelVolume(pa, store, index, channelIndex, volume, cb) {
 	const pai = getPaiByTypeAndIndex('sinkInput', index)(store.getState());
 	pa.setSinkInputVolumesByIndex(index, pai.channelVolumes.map((v, i) => i === channelIndex ? volume : v), cb);
 }
+
 function setSourceOutputChannelVolume(pa, store, index, channelIndex, volume, cb) {
 	const pai = getPaiByTypeAndIndex('sourceOutput', index)(store.getState());
 	pa.setSourceOutputVolumesByIndex(index, pai.channelVolumes.map((v, i) => i === channelIndex ? volume : v), cb);
@@ -78,6 +82,7 @@ const createPulseClient = (store, pulseServerId = primaryPulseServer) => {
 				console.warn(error);
 				return;
 			}
+
 			throw error;
 		}
 
@@ -87,8 +92,10 @@ const createPulseClient = (store, pulseServerId = primaryPulseServer) => {
 					console.warn(err.message, type, index);
 					return;
 				}
+
 				throw err;
 			}
+
 			info.type = info.type || type;
 			store.dispatch(pulseActions.info(info, pulseServerId));
 		});
@@ -122,6 +129,7 @@ const createPulseClient = (store, pulseServerId = primaryPulseServer) => {
 				getServerInfo();
 				return;
 			}
+
 			store.dispatch(pulseActions.new({ type, index }, pulseServerId));
 			getInfo(type, index);
 		})
@@ -130,6 +138,7 @@ const createPulseClient = (store, pulseServerId = primaryPulseServer) => {
 				getServerInfo();
 				return;
 			}
+
 			store.dispatch(pulseActions.change({ type, index }, pulseServerId));
 			getInfo(type, index);
 		})
@@ -161,6 +170,7 @@ const createPulseClient = (store, pulseServerId = primaryPulseServer) => {
 		if (error.message === 'Unable to connect to PulseAudio server') {
 			return Bluebird.delay(5000).then(reconnect);
 		}
+
 		throw error;
 	});
 
@@ -335,6 +345,7 @@ const updateTunnels = (dispatch, primaryState, remoteServerId, remoteState) => {
 		if ((tunnelAttempts[sink.name] || 0) + tunnelAttemptTimeout > Date.now()) {
 			return;
 		}
+
 		if (!sinkTunnels[sink.name]) {
 			tunnelAttempts[sink.name] = Date.now();
 			dispatch(pulseActions.loadModule('module-tunnel-sink', formatModuleArgs({
@@ -348,6 +359,7 @@ const updateTunnels = (dispatch, primaryState, remoteServerId, remoteState) => {
 		if ((tunnelAttempts[source.name] || 0) + tunnelAttemptTimeout > Date.now()) {
 			return;
 		}
+
 		if (!sourceTunnels[source.name]) {
 			tunnelAttempts[source.name] = Date.now();
 			dispatch(pulseActions.loadModule('module-tunnel-source', formatModuleArgs({
@@ -394,10 +406,10 @@ module.exports = store => {
 
 			const remoteState = nextState.pulse[pulseServerId];
 
-			if (primaryState.state === 'ready' &&
-				remoteState.state === 'ready' &&
-				primaryState.targetState === 'ready' &&
-				primaryState.targetState === 'ready'
+			if (primaryState.state === 'ready'
+				&& remoteState.state === 'ready'
+				&& primaryState.targetState === 'ready'
+				&& primaryState.targetState === 'ready'
 			) {
 				updateTunnels(store.dispatch, primaryState, pulseServerId, remoteState);
 			}

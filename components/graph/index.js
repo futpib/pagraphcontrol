@@ -28,12 +28,19 @@ const {
 } = require('ramda');
 
 const React = require('react');
-const PropTypes = require('prop-types');
 
 const r = require('r-dom');
 
-const { connect, Provider: ReduxProvider } = require('react-redux');
+const {
+	connect,
+	Provider: ReduxProvider,
+	ReactReduxContext: { Consumer: ReduxConsumer },
+} = require('react-redux');
 const { bindActionCreators } = require('redux');
+
+const {
+	fromRenderProps,
+} = require('recompose');
 
 const { HotKeys } = require('react-hotkeys');
 
@@ -41,6 +48,10 @@ const { PopupMenu, MenuItem } = require('@futpib/react-electron-menu');
 
 const d = require('../../utils/d');
 const memoize = require('../../utils/memoize');
+const {
+	forwardRef,
+	unforwardRef,
+} = require('../../utils/recompose');
 
 const {
 	pulse: pulseActions,
@@ -123,6 +134,7 @@ const selectionObjectTypes = {
 		if (type === 'client' || type === 'module') {
 			return 'client|module';
 		}
+
 		return type;
 	},
 
@@ -131,6 +143,7 @@ const selectionObjectTypes = {
 		if (type === 'client|module') {
 			return o => (o.type === 'client' || o.type === 'module');
 		}
+
 		return o => o.type === type;
 	},
 };
@@ -141,9 +154,11 @@ const sourceKey = pai => {
 	if (pai.type === 'monitorSource') {
 		return `sink-${pai.sinkIndex}`;
 	}
+
 	if (pai.clientIndex === -1) {
 		return `module-${pai.moduleIndex}`;
 	}
+
 	return `client-${pai.clientIndex}`;
 };
 
@@ -151,9 +166,11 @@ const targetKey = pai => {
 	if (pai.type === 'monitorSource') {
 		return `source-${pai.sourceIndex}`;
 	}
+
 	if (pai.type === 'sinkInput') {
 		return `sink-${pai.sinkIndex}`;
 	}
+
 	return `source-${pai.sourceIndex}`;
 };
 
@@ -172,9 +189,9 @@ const paoToEdge = memoize(pao => ({
 }));
 
 const getPaiIcon = memoize(pai => {
-	return null ||
-		path([ 'properties', 'application', 'icon_name' ], pai) ||
-		path([ 'properties', 'device', 'icon_name' ], pai);
+	return null
+		|| path([ 'properties', 'application', 'icon_name' ], pai)
+		|| path([ 'properties', 'device', 'icon_name' ], pai);
 });
 
 const s2 = size / 2;
@@ -301,6 +318,7 @@ const getVolumesForThumbnail = ({ pai, lockChannelsTogether }) => {
 			];
 		}
 	}
+
 	return volumes;
 };
 
@@ -397,6 +415,7 @@ const getVolumes = ({ pai, lockChannelsTogether }) => {
 			maximum(volumes),
 		];
 	}
+
 	return volumes;
 };
 
@@ -783,6 +802,7 @@ class Graph extends React.PureComponent {
 			if (edge.type === 'monitorSource') {
 				return;
 			}
+
 			connectedNodeKeys.add(edge.source);
 			connectedNodeKeys.add(edge.target);
 		});
@@ -790,10 +810,10 @@ class Graph extends React.PureComponent {
 		const filteredNodeKeys = new Set();
 
 		const nodes = filter(node => {
-			if ((props.preferences.hideDisconnectedClients && node.type === 'client') ||
-				(props.preferences.hideDisconnectedModules && node.type === 'module') ||
-				(props.preferences.hideDisconnectedSources && node.type === 'source') ||
-				(props.preferences.hideDisconnectedSinks && node.type === 'sink')
+			if ((props.preferences.hideDisconnectedClients && node.type === 'client')
+				|| (props.preferences.hideDisconnectedModules && node.type === 'module')
+				|| (props.preferences.hideDisconnectedSources && node.type === 'source')
+				|| (props.preferences.hideDisconnectedSinks && node.type === 'sink')
 			) {
 				if (!connectedNodeKeys.has(node.id)) {
 					return false;
@@ -802,9 +822,9 @@ class Graph extends React.PureComponent {
 
 			const pai = getPaiByDgoFromInfos(node)(props.infos);
 			if (pai) {
-				if (props.preferences.hideMonitors &&
-					pai.properties.device &&
-					pai.properties.device.class === 'monitor'
+				if (props.preferences.hideMonitors
+					&& pai.properties.device
+					&& pai.properties.device.class === 'monitor'
 				) {
 					return false;
 				}
@@ -812,11 +832,11 @@ class Graph extends React.PureComponent {
 				if (props.preferences.hidePulseaudioApps) {
 					const binary = path([ 'properties', 'application', 'process', 'binary' ], pai) || '';
 					const name = path([ 'properties', 'application', 'name' ], pai) || '';
-					if (binary.startsWith('pavucontrol') ||
-						binary.startsWith('kmix') ||
-						binary === 'pulseaudio' ||
-						name === 'papeaks' ||
-						name === 'paclient.js'
+					if (binary.startsWith('pavucontrol')
+						|| binary.startsWith('kmix')
+						|| binary === 'pulseaudio'
+						|| name === 'papeaks'
+						|| name === 'paclient.js'
 					) {
 						return false;
 					}
@@ -836,6 +856,7 @@ class Graph extends React.PureComponent {
 			if (props.preferences.hideMonitorSourceEdges && edge.type === 'monitorSource') {
 				return false;
 			}
+
 			return filteredNodeKeys.has(edge.source) && filteredNodeKeys.has(edge.target);
 		}, edges);
 
@@ -846,18 +867,18 @@ class Graph extends React.PureComponent {
 		}
 
 		if (selected) {
-			selected = find(x => x.id === selected.id, nodes) ||
-				find(x => x.id === selected.id, edges);
+			selected = find(x => x.id === selected.id, nodes)
+				|| find(x => x.id === selected.id, edges);
 		}
 
 		if (moved) {
-			moved = find(x => x.id === moved.id, nodes) ||
-				find(x => x.id === moved.id, edges);
+			moved = find(x => x.id === moved.id, nodes)
+				|| find(x => x.id === moved.id, edges);
 		}
 
 		if (contexted && contexted !== backgroundSymbol) {
-			contexted = find(x => x.id === contexted.id, nodes) ||
-				find(x => x.id === contexted.id, edges);
+			contexted = find(x => x.id === contexted.id, nodes)
+				|| find(x => x.id === contexted.id, edges);
 		}
 
 		return {
@@ -897,6 +918,7 @@ class Graph extends React.PureComponent {
 		if (!this._requestedIcons.has(icon) && !this.props.icons[icon]) {
 			this.props.getIconPath(icon, 128);
 		}
+
 		this._requestedIcons.add(icon);
 	}
 
@@ -927,10 +949,10 @@ class Graph extends React.PureComponent {
 	onNodeMouseDown(event, data) {
 		const pai = getPaiByDgoFromInfos(data)(this.props.infos);
 		if (pai && event.button === 1) {
-			if (pai.type === 'sink' ||
-				pai.type === 'source' ||
-				pai.type === 'client' ||
-				pai.type === 'module'
+			if (pai.type === 'sink'
+				|| pai.type === 'source'
+				|| pai.type === 'client'
+				|| pai.type === 'module'
 			) {
 				this.toggleMute(pai);
 			}
@@ -973,8 +995,8 @@ class Graph extends React.PureComponent {
 	onCreateEdge(source, target) {
 		const sourcePai = getPaiByDgoFromInfos(source)(this.props.infos);
 		const targetPai = getPaiByDgoFromInfos(target)(this.props.infos);
-		if (sourcePai && targetPai &&
-			source.type === 'source' && target.type === 'sink'
+		if (sourcePai && targetPai
+			&& source.type === 'source' && target.type === 'sink'
 		) {
 			this.props.loadModule('module-loopback', `source=${sourcePai.name} sink=${targetPai.name}`);
 		} else {
@@ -997,8 +1019,8 @@ class Graph extends React.PureComponent {
 	onEdgeMouseDown(event, data) {
 		const pai = getPaiByDgoFromInfos(data)(this.props.infos);
 		if (pai && event.button === 1) {
-			if (pai.type === 'sinkInput' ||
-				pai.type === 'sourceOutput'
+			if (pai.type === 'sinkInput'
+				|| pai.type === 'sourceOutput'
 			) {
 				this.toggleMute(pai);
 			}
@@ -1027,7 +1049,7 @@ class Graph extends React.PureComponent {
 			this.props.setSourceOutputMuteByIndex(pai.index, muted);
 		} else if (pai.type === 'sink') {
 			if (sourceBiased) {
-				const sinkInputs = getSinkSinkInputs(pai)(this.context.store.getState());
+				const sinkInputs = getSinkSinkInputs(pai)(this.props.store.getState());
 				this.toggleAllMute(sinkInputs);
 			} else {
 				this.props.setSinkMute(pai.index, muted);
@@ -1036,18 +1058,18 @@ class Graph extends React.PureComponent {
 			this.props.setSourceMute(pai.index, muted);
 		} else if (pai.type === 'client') {
 			if (sourceBiased) {
-				const sourceOutputs = getClientSourceOutputs(pai)(this.context.store.getState());
+				const sourceOutputs = getClientSourceOutputs(pai)(this.props.store.getState());
 				this.toggleAllMute(sourceOutputs);
 			} else {
-				const sinkInputs = getClientSinkInputs(pai)(this.context.store.getState());
+				const sinkInputs = getClientSinkInputs(pai)(this.props.store.getState());
 				this.toggleAllMute(sinkInputs);
 			}
 		} else if (pai.type === 'module') {
 			if (sourceBiased) {
-				const sourceOutputs = getModuleSourceOutputs(pai)(this.context.store.getState());
+				const sourceOutputs = getModuleSourceOutputs(pai)(this.props.store.getState());
 				this.toggleAllMute(sourceOutputs);
 			} else {
-				const sinkInputs = getModuleSinkInputs(pai)(this.context.store.getState());
+				const sinkInputs = getModuleSinkInputs(pai)(this.props.store.getState());
 				this.toggleAllMute(sinkInputs);
 			}
 		}
@@ -1065,9 +1087,9 @@ class Graph extends React.PureComponent {
 		} else if (selected.type === 'sourceOutput') {
 			this.props.killSourceOutputByIndex(selected.index);
 		} else if (
-			(selected.type === 'sink' || selected.type === 'source') &&
-				pai &&
-				pai.moduleIndex >= 0
+			(selected.type === 'sink' || selected.type === 'source')
+				&& pai
+				&& pai.moduleIndex >= 0
 		) {
 			this.props.unloadModuleByIndex(pai.moduleIndex);
 		}
@@ -1159,17 +1181,18 @@ class Graph extends React.PureComponent {
 				if (all) {
 					this.toggleAllMute(this.props.infos.sources);
 				} else {
-					const defaultSource = getDefaultSourcePai(this.context.store.getState());
+					const defaultSource = getDefaultSourcePai(this.props.store.getState());
 					this.toggleMute(defaultSource);
 				}
 			} else {
 				if (all) { // eslint-disable-line no-lonely-if
 					this.toggleAllMute(this.props.infos.sinks);
 				} else {
-					const defaultSink = getDefaultSinkPai(this.context.store.getState());
+					const defaultSink = getDefaultSinkPai(this.props.store.getState());
 					this.toggleMute(defaultSink);
 				}
 			}
+
 			return;
 		}
 
@@ -1218,7 +1241,7 @@ class Graph extends React.PureComponent {
 		if (this.state.selected) {
 			pai = getPaiByDgoFromInfos(this.state.selected)(this.props.infos);
 		} else {
-			pai = getDefaultSinkPai(this.context.store.getState());
+			pai = getDefaultSinkPai(this.props.store.getState());
 		}
 
 		if (!pai) {
@@ -1226,12 +1249,13 @@ class Graph extends React.PureComponent {
 		}
 
 		if (pai.type === 'client') {
-			const sinkInputs = getClientSinkInputs(pai)(this.context.store.getState());
+			const sinkInputs = getClientSinkInputs(pai)(this.props.store.getState());
 			this._volumeAll(sinkInputs, direction);
 			return;
 		}
+
 		if (pai.type === 'module') {
-			const sinkInputs = getModuleSinkInputs(pai)(this.context.store.getState());
+			const sinkInputs = getModuleSinkInputs(pai)(this.props.store.getState());
 			this._volumeAll(sinkInputs, direction);
 			return;
 		}
@@ -1283,15 +1307,16 @@ class Graph extends React.PureComponent {
 		let node = null;
 		for (const type of types) {
 			const predicate = selectionObjectTypes.toPulsePredicate(type);
-			node =
-				(isBest && find(allPass([ predicate, isBest ]), this.state.nodes)) ||
-				(isBest && find(allPass([ predicate, isBest ]), this.state.edges)) ||
-				find(predicate, this.state.nodes) ||
-				find(predicate, this.state.edges);
+			node
+				= (isBest && find(allPass([ predicate, isBest ]), this.state.nodes))
+				|| (isBest && find(allPass([ predicate, isBest ]), this.state.edges))
+				|| find(predicate, this.state.nodes)
+				|| find(predicate, this.state.edges);
 			if (node) {
 				break;
 			}
 		}
+
 		return node;
 	}
 
@@ -1318,11 +1343,11 @@ class Graph extends React.PureComponent {
 			range(0, 3)
 		);
 
-		const bestSelectionPredicate = x => null ||
-			x.source === selected.id ||
-			x.target === selected.id ||
-			selected.source === x.id ||
-			selected.target === x.id;
+		const bestSelectionPredicate = x => null
+			|| x.source === selected.id
+			|| x.target === selected.id
+			|| selected.source === x.id
+			|| selected.target === x.id;
 
 		this.setState({
 			selected: this._findAnyObjectForSelection(types, bestSelectionPredicate),
@@ -1348,9 +1373,9 @@ class Graph extends React.PureComponent {
 	_hotKeyMovePosition(direction) {
 		const { selected, moved } = this.state;
 
-		if (!selected ||
-			selected !== moved ||
-			![ 'sink', 'source', 'client', 'module' ].includes(moved.type)
+		if (!selected
+			|| selected !== moved
+			|| ![ 'sink', 'source', 'client', 'module' ].includes(moved.type)
 		) {
 			return false;
 		}
@@ -1488,15 +1513,15 @@ class Graph extends React.PureComponent {
 				renderDefs,
 
 				renderNode,
-				renderNodeText: renderNodeText(this.context.store),
+				renderNodeText: renderNodeText(this.props.store),
 
 				renderEdge,
-				renderEdgeText: renderEdgeText(this.context.store),
+				renderEdgeText: renderEdgeText(this.props.store),
 			}),
 
 			this.state.contexted && (
-				this.state.contexted === backgroundSymbol ?
-					r(BackgroundContextMenu, {
+				this.state.contexted === backgroundSymbol
+					? r(BackgroundContextMenu, {
 						key: 'background-context-menu',
 
 						onClose: this.onContextMenuClose,
@@ -1506,8 +1531,8 @@ class Graph extends React.PureComponent {
 						onLoadModuleLoopback: this.onLoadModuleLoopback,
 						onLoadModuleCombineSink: this.onLoadModuleCombineSink,
 						onLoadModuleNullSink: this.onLoadModuleNullSink,
-					}) :
-					r(GraphObjectContextMenu, {
+					})
+					: r(GraphObjectContextMenu, {
 						key: 'graph-object-context-menu',
 
 						onClose: this.onContextMenuClose,
@@ -1523,29 +1548,34 @@ class Graph extends React.PureComponent {
 	}
 }
 
-Graph.contextTypes = {
-	store: PropTypes.any,
-};
+module.exports = compose(
+	forwardRef(),
 
-module.exports = connect(
-	state => ({
-		serverInfo: state.pulse[primaryPulseServer].serverInfo,
+	connect(
+		state => ({
+			serverInfo: state.pulse[primaryPulseServer].serverInfo,
 
-		objects: state.pulse[primaryPulseServer].objects,
-		infos: state.pulse[primaryPulseServer].infos,
+			objects: state.pulse[primaryPulseServer].objects,
+			infos: state.pulse[primaryPulseServer].infos,
 
-		derivations: {
-			monitorSources: getDerivedMonitorSources(state),
-		},
+			derivations: {
+				monitorSources: getDerivedMonitorSources(state),
+			},
 
-		icons: state.icons,
+			icons: state.icons,
 
-		preferences: state.preferences,
-	}),
-	dispatch => bindActionCreators(omit([
-		'serverInfo',
-		'unloadModuleByIndex',
-	], merge(pulseActions, iconsActions)), dispatch),
-	null,
-	{ withRef: true },
+			preferences: state.preferences,
+		}),
+		dispatch => bindActionCreators(omit([
+			'serverInfo',
+			'unloadModuleByIndex',
+		], merge(pulseActions, iconsActions)), dispatch),
+	),
+
+	fromRenderProps(
+		ReduxConsumer,
+		({ store }) => ({ store }),
+	),
+
+	unforwardRef(),
 )(Graph);

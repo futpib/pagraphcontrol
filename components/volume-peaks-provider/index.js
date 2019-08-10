@@ -48,11 +48,11 @@ function spawnProcess({ onPeak, onExit }) {
 			const peak = data.readFloatLE(p);
 			p += 4;
 
-			const typeStr = type === PA_SUBSCRIPTION_EVENT_SOURCE ?
-				'source' :
-				type === PA_SUBSCRIPTION_EVENT_SINK_INPUT ?
-					'sinkInput' :
-					'unexpected';
+			const typeStr = type === PA_SUBSCRIPTION_EVENT_SOURCE
+				? 'source'
+				: type === PA_SUBSCRIPTION_EVENT_SINK_INPUT
+					? 'sinkInput'
+					: 'unexpected';
 			onPeak(typeStr, index, peak);
 		}
 	};

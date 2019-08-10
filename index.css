@@ -308,6 +308,10 @@ div[tabindex="-1"]:focus {
 	cursor: pointer;
 }
 
+.graph foreignObject {
+	overflow: visible;
+}
+
 .node-text, .edge-text {
 	pointer-events: none;
 

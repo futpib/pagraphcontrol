@@ -60,6 +60,7 @@ for (const themePath of themePaths) {
 		if (error.code === 'ENOENT') {
 			continue;
 		}
+
 		throw error;
 	}
 
@@ -70,6 +71,7 @@ for (const themePath of themePaths) {
 		if (error.code === 'ENOENT') {
 			continue;
 		}
+
 		throw error;
 	}
 }

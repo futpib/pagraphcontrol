@@ -51,9 +51,9 @@ const serverReducer = combineReducers({
 
 	serverInfo: handleActions({
 		[pulse.serverInfo]: (state, { payload }) => {
-			return equals(state, payload) ?
-				state :
-				payload;
+			return equals(state, payload)
+				? state
+				: payload;
 		},
 		[pulse.close]: always(serverInitialState.serverInfo),
 	}, serverInitialState.serverInfo),
@@ -63,9 +63,11 @@ const serverReducer = combineReducers({
 			if (payload.type !== type) {
 				return state;
 			}
+
 			if (payload.type === 'sinkInput' || payload.type === 'sourceOutput') {
 				return state;
 			}
+
 			return merge(state, {
 				[payload.index]: payload,
 			});
@@ -74,12 +76,14 @@ const serverReducer = combineReducers({
 			if (payload.type !== type) {
 				return state;
 			}
+
 			return omit([ payload.index ], state);
 		},
 		[pulse.info]: (state, { payload }) => {
 			if (payload.type !== type) {
 				return state;
 			}
+
 			if (payload.type === 'sinkInput' || payload.type === 'sourceOutput') {
 				const newPao = pick([
 					'type',
@@ -100,6 +104,7 @@ const serverReducer = combineReducers({
 					[newPao.index]: newPao,
 				});
 			}
+
 			return state;
 		},
 		[pulse.close]: () => serverInitialState.objects[key],
@@ -110,12 +115,14 @@ const serverReducer = combineReducers({
 			if (payload.type !== type) {
 				return state;
 			}
+
 			return omit([ payload.index ], state);
 		},
 		[pulse.info]: (state, { payload }) => {
 			if (payload.type !== type) {
 				return state;
 			}
+
 			return merge(state, {
 				[payload.index]: payload,
 			});

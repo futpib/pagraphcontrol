@@ -4,7 +4,7 @@ const { createStore, applyMiddleware } = require('redux');
 const { composeWithDevTools } = require('remote-redux-devtools');
 
 const { default: thunkMiddleware } = require('redux-thunk');
-const { default: createPromiseMiddleware } = require('redux-promise-middleware');
+const { default: promiseMiddleware } = require('redux-promise-middleware');
 
 const { persistStore, persistReducer } = require('redux-persist');
 const createElectronStorage = require('redux-persist-electron-storage');
@@ -24,7 +24,7 @@ const dev = process.env.NODE_ENV !== 'production';
 module.exports = (state = initialState) => {
 	const middlewares = [
 		thunkMiddleware,
-		createPromiseMiddleware(),
+		promiseMiddleware,
 		pulseMiddleware,
 	].filter(Boolean);
 

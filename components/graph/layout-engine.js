@@ -27,8 +27,8 @@ module.exports = class LayoutEngine {
 			return undefined;
 		}
 
-		return (((a.x - size - margin) < b.x) && (b.x < (a.x + size + margin))) &&
-			(((a.y - size - margin) < b.y) && (b.y < (a.y + size + margin)));
+		return (((a.x - size - margin) < b.x) && (b.x < (a.x + size + margin)))
+			&& (((a.y - size - margin) < b.y) && (b.y < (a.y + size + margin)));
 	}
 
 	calculatePosition(node) {
@@ -81,6 +81,7 @@ module.exports = class LayoutEngine {
 				if (estimatedColumnHeights.get(2) < targetClientsColumnHeight) {
 					targetCol = 2;
 				}
+
 				node.x = (2 * step) + (targetCol * step);
 			}
 

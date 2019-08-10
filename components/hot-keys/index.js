@@ -57,42 +57,42 @@ class MyHotKeys extends React.Component {
 	}
 
 	hotKeyFocusGraph() {
-		this.cardsRef.current.getWrappedInstance().close();
-		this.networkRef.current.getWrappedInstance().close();
-		this.preferencesRef.current.getWrappedInstance().close();
-		this.graphRef.current.getWrappedInstance().focus();
+		this.cardsRef.current.close();
+		this.networkRef.current.close();
+		this.preferencesRef.current.close();
+		this.graphRef.current.focus();
 	}
 
 	hotKeyFocusCards() {
-		this.networkRef.current.getWrappedInstance().close();
-		this.preferencesRef.current.getWrappedInstance().close();
+		this.networkRef.current.close();
+		this.preferencesRef.current.close();
 
-		const cards = this.cardsRef.current.getWrappedInstance();
+		const cards = this.cardsRef.current;
 		cards.toggle();
 		if (!cards.isOpen()) {
-			this.graphRef.current.getWrappedInstance().focus();
+			this.graphRef.current.focus();
 		}
 	}
 
 	hotKeyFocusNetwork() {
-		this.cardsRef.current.getWrappedInstance().close();
-		this.preferencesRef.current.getWrappedInstance().close();
+		this.cardsRef.current.close();
+		this.preferencesRef.current.close();
 
-		const network = this.networkRef.current.getWrappedInstance();
+		const network = this.networkRef.current;
 		network.toggle();
 		if (!network.isOpen()) {
-			this.graphRef.current.getWrappedInstance().focus();
+			this.graphRef.current.focus();
 		}
 	}
 
 	hotKeyFocusPreferences() {
-		this.cardsRef.current.getWrappedInstance().close();
-		this.networkRef.current.getWrappedInstance().close();
+		this.cardsRef.current.close();
+		this.networkRef.current.close();
 
-		const preferences = this.preferencesRef.current.getWrappedInstance();
+		const preferences = this.preferencesRef.current;
 		preferences.toggle();
 		if (!preferences.isOpen()) {
-			this.graphRef.current.getWrappedInstance().focus();
+			this.graphRef.current.focus();
 		}
 	}
 
