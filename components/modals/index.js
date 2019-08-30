@@ -118,7 +118,7 @@ class Modals extends React.PureComponent {
 				});
 			}, {
 				unloadModuleByIndex(index) {
-					const pai = getPaiByTypeAndIndex('module', index)(this.context.store.getState());
+					const pai = getPaiByTypeAndIndex('module', index)(this.props.store.getState());
 
 					if (pai && path([ pai.name, 'confirmUnload' ], modules)) {
 						return pai;
@@ -201,10 +201,6 @@ class Modals extends React.PureComponent {
 		]);
 	}
 }
-
-Modals.contextTypes = {
-	store: PropTypes.any,
-};
 
 module.exports = compose(
 	connect(
