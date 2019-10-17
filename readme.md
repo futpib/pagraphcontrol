@@ -25,7 +25,7 @@
 [pagraphcontrol-git on AUR](https://aur.archlinux.org/packages/pagraphcontrol-git)
 
 ```bash
-yaourt pagraphcontrol-git
+yay -S pagraphcontrol-git
 ```
 
 ### Ubuntu (manual build) 
