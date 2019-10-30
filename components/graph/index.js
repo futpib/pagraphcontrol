@@ -756,6 +756,7 @@ class Graph extends React.PureComponent {
 		this._requestedIcons = new Set();
 
 		Object.assign(this, {
+			renderBackground: this.renderBackground.bind(this),
 			onBackgroundMouseDown: this.onBackgroundMouseDown.bind(this),
 
 			onZoomStart: this.onZoomStart.bind(this),
@@ -1443,6 +1444,12 @@ class Graph extends React.PureComponent {
 		this.props.loadModule('module-null-sink', '');
 	}
 
+	renderBackground() {
+		return renderBackground({
+			onMouseDown: this.onBackgroundMouseDown,
+		});
+	}
+
 	render() {
 		const { nodes, edges } = this.state;
 
@@ -1482,8 +1489,6 @@ class Graph extends React.PureComponent {
 				nodeSubtypes: {},
 				edgeTypes: {},
 
-				onBackgroundMouseDown: this.onBackgroundMouseDown,
-
 				onZoomStart: this.onZoomStart,
 				onZoomEnd: this.onZoomEnd,
 
@@ -1508,7 +1513,7 @@ class Graph extends React.PureComponent {
 
 				layoutEngine,
 
-				renderBackground,
+				renderBackground: this.renderBackground,
 
 				renderDefs,
 

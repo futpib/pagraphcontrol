@@ -28,9 +28,6 @@ class GraphView extends GraphViewBase {
 		}
 
 		Object.assign(this, {
-			_super_renderBackground: this.renderBackground,
-			renderBackground: this.constructor.prototype.renderBackground.bind(this),
-
 			_super_handleZoomStart: this.handleZoomStart,
 			handleZoomStart: this.constructor.prototype.handleZoomStart.bind(this),
 			_super_handleZoomEnd: this.handleZoomEnd,
@@ -144,19 +141,6 @@ class GraphView extends GraphViewBase {
 		}
 
 		return super.getMouseCoordinates();
-	}
-
-	renderBackground() {
-		const { gridSize, backgroundFillId, renderBackground, onBackgroundMouseDown } = this.props;
-		if (renderBackground) {
-			return renderBackground({
-				gridSize,
-				backgroundFillId,
-				onMouseDown: onBackgroundMouseDown,
-			});
-		}
-
-		return this._super_renderBackground();
 	}
 
 	getNodeComponent(id, node) {
