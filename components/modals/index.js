@@ -9,7 +9,6 @@ const {
 const r = require('r-dom');
 
 const React = require('react');
-const PropTypes = require('prop-types');
 
 const Modal = require('react-modal');
 
