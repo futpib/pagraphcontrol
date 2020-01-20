@@ -91,6 +91,7 @@ div[tabindex="-1"]:focus {
 	border: 1px solid var(--borders);
 	padding: 4px;
 	cursor: pointer;
+	width: 100%;
 }
 .select:hover {
 	border-color: var(--themeSelectedBgColor);
