@@ -1,7 +1,7 @@
 
 const { createStore, applyMiddleware } = require('redux');
 
-const { composeWithDevTools } = require('remote-redux-devtools');
+const { composeWithDevTools } = require('redux-devtools-extension');
 
 const { default: thunkMiddleware } = require('redux-thunk');
 const { default: promiseMiddleware } = require('redux-promise-middleware');

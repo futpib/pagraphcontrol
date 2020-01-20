@@ -48,11 +48,11 @@
     "recompose": "^0.30.0",
     "redux": "^4.0.4",
     "redux-actions": "^2.6.5",
+    "redux-devtools-extension": "^2.13.8",
     "redux-persist": "^5.10.0",
     "redux-persist-electron-storage": "^2.1.0",
     "redux-promise-middleware": "^6.1.1",
     "redux-thunk": "^2.3.0",
-    "remote-redux-devtools": "^0.5.16",
     "reselect": "^4.0.0"
   }
 }
