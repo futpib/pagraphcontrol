@@ -189,9 +189,17 @@ const paoToEdge = memoize(pao => ({
 }));
 
 const getPaiIcon = memoize(pai => {
-	return null
-		|| path([ 'properties', 'application', 'icon_name' ], pai)
+	let return_var = path(['properties', 'application', 'icon_name'], pai)
 		|| path([ 'properties', 'device', 'icon_name' ], pai);
+	// Edge case for when there is no icon_name for an app
+	// Google Play Music Desktop Player is an example of this.
+	if (path(['properties', 'application', 'name'], pai) && !return_var)
+	{
+		return path(['properties', 'application', 'name'], pai).toLowerCase().replace(/ /g, '-', )
+	}
+	else {
+		return return_var
+	}
 });
 
 const s2 = size / 2;
