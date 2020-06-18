@@ -22,6 +22,8 @@ const { VolumePeaksProvider, VolumePeaksConsumer } = require('./components/volum
 
 const theme = require('./utils/theme');
 
+console.log({ theme });
+
 const Root = () => r(ReduxProvider, {
 	store: createStore(),
 }, r(VolumePeaksProvider, {
@@ -48,6 +50,7 @@ const Root = () => r(ReduxProvider, {
 ]))))));
 
 Object.entries(theme.colors).forEach(([ key, value ]) => {
+	console.log(key, value);
 	document.body.style.setProperty('--' + key, value);
 });
 
