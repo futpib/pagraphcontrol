@@ -132,7 +132,7 @@ class GraphView extends GraphViewBase {
 		super.componentDidUpdate(previousProps, previousState);
 	}
 
-	getMouseCoordinates() {
+	getMouseCoordinates(...args) {
 		if (this.props.selected && this.props.moved) {
 			return [
 				this.props.selected.x,
@@ -140,7 +140,7 @@ class GraphView extends GraphViewBase {
 			];
 		}
 
-		return super.getMouseCoordinates();
+		return super.getMouseCoordinates(...args);
 	}
 
 	getNodeComponent(id, node) {
