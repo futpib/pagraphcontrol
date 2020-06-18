@@ -48,12 +48,12 @@ function spawnProcess({ onPeak, onExit }) {
 			const peak = data.readFloatLE(p);
 			p += 4;
 
-			const typeStr = type === PA_SUBSCRIPTION_EVENT_SOURCE
+			const typeString = type === PA_SUBSCRIPTION_EVENT_SOURCE
 				? 'source'
-				: type === PA_SUBSCRIPTION_EVENT_SINK_INPUT
+				: (type === PA_SUBSCRIPTION_EVENT_SINK_INPUT
 					? 'sinkInput'
-					: 'unexpected';
-			onPeak(typeStr, index, peak);
+					: 'unexpected');
+			onPeak(typeString, index, peak);
 		}
 	};
 
@@ -91,10 +91,10 @@ class VolumePeaksProvider extends React.Component {
 		}
 	}
 
-	componentDidUpdate(prevProps, prevState) {
-		if (this.state.state !== 'ready' && prevState.state === 'ready') {
+	componentDidUpdate(previousProps, previousState) {
+		if (this.state.state !== 'ready' && previousState.state === 'ready') {
 			this._killProcess();
-		} else if (this.state.state === 'ready' && prevState.state !== 'ready') {
+		} else if (this.state.state === 'ready' && previousState.state !== 'ready') {
 			this._spawnProcess();
 		}
 	}

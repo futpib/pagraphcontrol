@@ -1341,7 +1341,7 @@ class Graph extends React.PureComponent {
 		const types = scan(
 			next,
 			next(selectionObjectTypes.fromPulseType(selected.type)),
-			range(0, 3)
+			range(0, 3),
 		);
 
 		const bestSelectionPredicate = x => null
@@ -1381,8 +1381,8 @@ class Graph extends React.PureComponent {
 			return false;
 		}
 
-		const x = direction === 'right' ? 1 : direction === 'left' ? -1 : 0;
-		const y = direction === 'down' ? 1 : direction === 'up' ? -1 : 0;
+		const x = direction === 'right' ? 1 : (direction === 'left' ? -1 : 0);
+		const y = direction === 'down' ? 1 : (direction === 'up' ? -1 : 0);
 
 		moved.x += x * (size + (size / 12));
 		moved.y += y * (size + (size / 12));

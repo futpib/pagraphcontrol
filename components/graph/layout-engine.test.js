@@ -1,7 +1,7 @@
 
-import test from 'ava';
+const test = require('ava');
 
-import LayoutEngine from './layout-engine';
+const LayoutEngine = require('./layout-engine');
 
 const n = (x, y) => ({ x, y });
 

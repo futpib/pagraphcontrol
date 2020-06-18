@@ -94,13 +94,13 @@ class GraphView extends GraphViewBase {
 			|| this.state.edgeEndNode !== nextState.edgeEndNode;
 	}
 
-	componentDidUpdate(prevProps, prevState) {
+	componentDidUpdate(previousProps, previousState) {
 		const { nodeKey } = this.props;
 
-		if (this.state.edgeEndNode !== prevState.edgeEndNode) {
-			if (prevState.edgeEndNode) {
-				const prevNode = document.querySelector('#node-' + prevState.edgeEndNode[nodeKey]);
-				prevNode.classList.remove('targeted');
+		if (this.state.edgeEndNode !== previousState.edgeEndNode) {
+			if (previousState.edgeEndNode) {
+				const previousNode = document.querySelector('#node-' + previousState.edgeEndNode[nodeKey]);
+				previousNode.classList.remove('targeted');
 			}
 
 			if (this.state.edgeEndNode) {
@@ -109,9 +109,9 @@ class GraphView extends GraphViewBase {
 			}
 		}
 
-		if (!prevProps.moved && this.props.moved) {
+		if (!previousProps.moved && this.props.moved) {
 			this.removeEdgeElement(this.props.moved.source, this.props.moved.target);
-		} else if (prevProps.moved && !this.props.moved) {
+		} else if (previousProps.moved && !this.props.moved) {
 			const container = document.querySelector('#edge-custom-container');
 			if (container) {
 				container.remove();
@@ -121,15 +121,15 @@ class GraphView extends GraphViewBase {
 		if (this.props.selected
 			&& this.props.moved
 			&& (
-				prevProps.selected !== this.props.selected
-				|| prevProps.moved !== this.props.moved
+				previousProps.selected !== this.props.selected
+				|| previousProps.moved !== this.props.moved
 			)
 			&& this.state.draggedEdge
 		) {
 			this.dragEdge();
 		}
 
-		super.componentDidUpdate(prevProps, prevState);
+		super.componentDidUpdate(previousProps, previousState);
 	}
 
 	getMouseCoordinates() {

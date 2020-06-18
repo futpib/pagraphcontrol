@@ -148,7 +148,7 @@ const serverReducer = combineReducers({
 	}),
 });
 
-const reducer = (state = initialState, action) => {
+const reducer = (state = initialState, action) => { // eslint-disable-line default-param-last
 	const { pulseServerId = primaryPulseServer } = action.meta || {};
 	return over(lensProp(pulseServerId), s => serverReducer(s, action), state);
 };

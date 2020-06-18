@@ -42,7 +42,7 @@ const SinksOrSourcesPresenter = ({ sinksOrSources, setSinkOrSourcePort }) => map
 			.filter(Boolean)
 			.join(' '),
 		value: sinkOrSource.activePortName,
-		onChange: e => setSinkOrSourcePort(sinkOrSource.index, e.target.value),
+		onChange: ({ target: { value } }) => setSinkOrSourcePort(sinkOrSource.index, value),
 	}),
 ]), values(filter(s => s.ports.length > 0, sinksOrSources)));
 
@@ -126,8 +126,8 @@ class Cards extends React.Component {
 							.filter(Boolean)
 							.join(' '),
 						value: card.activeProfileName,
-						onChange: e => {
-							this.props.actions.setCardProfile(card.index, e.target.value);
+						onChange: ({ target: { value } }) => {
+							this.props.actions.setCardProfile(card.index, value);
 						},
 					}),
 				]),

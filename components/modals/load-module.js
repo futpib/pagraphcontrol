@@ -28,8 +28,8 @@ class LoadModuleModal extends React.PureComponent {
 		this.handleSubmit = this.handleSubmit.bind(this);
 	}
 
-	handleSubmit(e) {
-		e.preventDefault();
+	handleSubmit(event) {
+		event.preventDefault();
 
 		const { name, args } = this.state;
 		this.props.loadModule(name, args);
@@ -55,7 +55,7 @@ class LoadModuleModal extends React.PureComponent {
 							style: { width: '100%' },
 							autoFocus: true,
 							value: this.state.name,
-							onChange: e => this.setState({ name: e.target.value }),
+							onChange: ({ target: { value } }) => this.setState({ name: value }),
 						}),
 					]),
 				]),
@@ -66,7 +66,7 @@ class LoadModuleModal extends React.PureComponent {
 						r(Input, {
 							style: { width: '100%' },
 							value: this.state.args,
-							onChange: e => this.setState({ args: e.target.value }),
+							onChange: ({ target: { value } }) => this.setState({ args: value }),
 						}),
 					]),
 				]),

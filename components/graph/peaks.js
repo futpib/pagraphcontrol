@@ -126,7 +126,7 @@ class Peaks extends React.Component {
 				const rope = new PIXI.SimpleRope(this.trailTexture, points);
 				rope.blendmode = PIXI.BLEND_MODES.ADD;
 				rope.alpha = peak === undefined ? 0 : peak ** (1 / 3);
-				rope.tint = parseInt(theme.colors.themeSelectedBgColor.replace(/#/g, ''), 16);
+				rope.tint = Number.parseInt(theme.colors.themeSelectedBgColor.replace(/#/g, ''), 16);
 
 				return rope;
 			});

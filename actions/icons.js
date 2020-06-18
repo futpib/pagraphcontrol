@@ -18,25 +18,25 @@ const getIconWithFallback = async name => {
 		return cache.get(name);
 	}
 
-	let res = await freedesktopIcons({
+	let result = await freedesktopIcons({
 		name,
 		type: 'scalable',
 	}, iconThemeNames);
 
-	if (!res) {
-		res = await freedesktopIcons({
+	if (!result) {
+		result = await freedesktopIcons({
 			name,
 			size: 128,
 		}, iconThemeNames);
 	}
 
-	if (!res && fallbacks.has(name)) {
+	if (!result && fallbacks.has(name)) {
 		return getIconWithFallback(fallbacks.get(name));
 	}
 
-	cache.set(name, res);
+	cache.set(name, result);
 
-	return res;
+	return result;
 };
 
 module.exports = createActionCreators({

@@ -1,9 +1,9 @@
 
-import test from 'ava';
+const test = require('ava');
 
-import { map, range } from 'ramda';
+const { map, range } = require('ramda');
 
-import plusMinus from './plus-minus';
+const plusMinus = require('./plus-minus');
 
 test('plusMinus', t => {
 	t.deepEqual(

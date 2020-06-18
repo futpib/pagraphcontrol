@@ -27,8 +27,8 @@ class AddRemoteServerModal extends React.PureComponent {
 		this.handleSubmit = this.handleSubmit.bind(this);
 	}
 
-	handleSubmit(e) {
-		e.preventDefault();
+	handleSubmit(event) {
+		event.preventDefault();
 
 		const { address } = this.state;
 		this.props.setAdd('remoteServerAddresses', address);
@@ -56,7 +56,7 @@ class AddRemoteServerModal extends React.PureComponent {
 							style: { width: '100%' },
 							autoFocus: true,
 							value: this.state.address,
-							onChange: e => this.setState({ address: e.target.value }),
+							onChange: ({ target: { value } }) => this.setState({ address: value }),
 						}),
 					]),
 				]),

@@ -20,9 +20,9 @@ const NumberInput = require('../number-input');
 const VolumeRatioInput = ({ pref, fallback, preferences, actions, children }) => r(NumberInput, {
 	type: 'number',
 	value: defaultTo(fallback, Math.round(preferences[pref] * 100)),
-	onChange: e => {
-		const v = defaultTo(fallback, Math.max(0, parseInt(e.target.value, 10)));
-		actions.set({ [pref]: v / 100 });
+	onChange: ({ target: { value } }) => {
+		value = defaultTo(fallback, Math.max(0, Number.parseInt(value, 10)));
+		actions.set({ [pref]: value / 100 });
 	},
 }, children);
 

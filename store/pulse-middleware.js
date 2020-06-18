@@ -301,16 +301,16 @@ const createPulseClient = (store, pulseServerId = primaryPulseServer) => {
 	return {
 		handleAction: action => handlePulseActions(null, action),
 
-		storeWillUpdate(prevState, nextState) {
+		storeWillUpdate(previousState, nextState) {
 			state = nextState;
-			const prev = getPulseServerState(prevState);
+			const previous = getPulseServerState(previousState);
 			const next = getPulseServerState(nextState);
 
-			if (prev === next) {
+			if (previous === next) {
 				return;
 			}
 
-			if (prev.targetState !== next.targetState) {
+			if (previous.targetState !== next.targetState) {
 				if (next.targetState === 'ready') {
 					reconnect();
 				} else if (next.targetState === 'closed') {
@@ -378,9 +378,9 @@ module.exports = store => {
 	return next => action => {
 		const { pulseServerId = primaryPulseServer } = action.meta || {};
 
-		const prevState = store.getState();
+		const previousState = store.getState();
 
-		const ret = next(action);
+		const returnValue = next(action);
 
 		const nextState = store.getState();
 
@@ -393,8 +393,8 @@ module.exports = store => {
 		const client = clients[pulseServerId];
 		if (client) {
 			client.handleAction(action);
-			if (prevState !== nextState) {
-				client.storeWillUpdate(prevState, nextState);
+			if (previousState !== nextState) {
+				client.storeWillUpdate(previousState, nextState);
 			}
 		}
 
@@ -415,6 +415,6 @@ module.exports = store => {
 			}
 		});
 
-		return ret;
+		return returnValue;
 	};
 };

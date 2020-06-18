@@ -23,7 +23,7 @@ const resolveColor = (value, depth = 0) => {
 	}
 
 	return value;
-}
+};
 
 module.exports = {
 	iconThemeNames: theme.iconThemeNames,

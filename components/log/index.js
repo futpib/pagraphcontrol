@@ -53,8 +53,8 @@ class Log extends React.Component {
 		return actionTypeText[item.action] || item.action;
 	}
 
-	componentDidUpdate(prevProps) {
-		const newItems = differenceWith((a, b) => a === b, this.props.log.items, prevProps.log.items);
+	componentDidUpdate(previousProps) {
+		const newItems = differenceWith((a, b) => a === b, this.props.log.items, previousProps.log.items);
 		newItems.forEach(item => setTimeout(() => {
 			this.removeItem(item);
 		}, this.props.itemLifetime));

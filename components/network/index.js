@@ -88,11 +88,11 @@ const RemoteServer = connect(
 			' sinks and ',
 			keys(remoteServer.objects.sources).length,
 			' sources.',
-		]) : targetState === 'ready' ? r(Label, {
+		]) : (targetState === 'ready' ? r(Label, {
 			passive: true,
 		}, [
 			'Connecting...',
-		]) : null,
+		]) : null),
 	]);
 });
 
