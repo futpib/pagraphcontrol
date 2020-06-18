@@ -740,8 +740,6 @@ class Graph extends React.PureComponent {
 	constructor(props) {
 		super(props);
 
-		this.satellitesGraphViewRef = React.createRef();
-
 		this.state = {
 			selected: null,
 			moved: null,
