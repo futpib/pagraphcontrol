@@ -96,8 +96,6 @@ const {
 	Edge,
 } = require('./base');
 
-const Peaks = require('./peaks');
-
 const LayoutEngine = require('./layout-engine');
 
 const maximum = reduce(max, -Infinity);
@@ -1453,28 +1451,13 @@ class Graph extends React.PureComponent {
 	render() {
 		const { nodes, edges } = this.state;
 
-		const satellitesGraphViewState = path(
-			[ 'current', 'state' ],
-			this.satellitesGraphViewRef,
-		);
-
 		return r(HotKeys, {
 			handlers: map(f => bind(f, this), pick(keys(keyMap), this)),
 		}, r.div({
 			id: 'graph',
 		}, [
-			!this.props.preferences.hideLiveVolumePeaks && r(Peaks, {
-				key: 'peaks',
-				nodes: defaultTo([], prop('satelliteNodes', satellitesGraphViewState)),
-				edges: defaultTo([], prop('satelliteEdges', satellitesGraphViewState)),
-				accommodateGraphAnimation: this.state.isDraggingNode || this.state.isZooming,
-				peaks: this.props.peaks,
-			}),
-
 			r(SatellitesGraphView, {
 				key: 'graph',
-
-				ref: this.satellitesGraphViewRef,
 
 				nodeKey: 'id',
 				edgeKey: 'id',
@@ -1522,6 +1505,10 @@ class Graph extends React.PureComponent {
 
 				renderEdge,
 				renderEdgeText: renderEdgeText(this.props.store),
+
+				hideLiveVolumePeaks: this.props.preferences.hideLiveVolumePeaks,
+				accommodateGraphAnimation: this.state.isDraggingNode || this.state.isZooming,
+				peaks: this.props.peaks,
 			}),
 
 			this.state.contexted && (

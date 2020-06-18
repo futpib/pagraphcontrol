@@ -97,6 +97,7 @@ class Peaks extends React.Component {
 	}
 
 	handleTick() {
+		console.log(this.props.edges.length);
 		const matrix = this.view.getScreenCTM();
 		const point = this.graph.createSVGPoint();
 

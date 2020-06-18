@@ -18,6 +18,8 @@ const {
 	GraphView: GraphViewBase,
 } = require('./base');
 
+const Peaks = require('./peaks');
+
 const originalEdgeToSatelliteNode = edge => ({
 	id: `${edge.target}__satellite__${edge.id}`,
 	type: 'satellite',
@@ -218,34 +220,54 @@ class SatellitesGraphView extends React.Component {
 			moved,
 		} = this.state;
 
-		return r(GraphViewBase, {
-			...this.props,
+		const {
+			hideLiveVolumePeaks,
+			accommodateGraphAnimation,
+			peaks,
 
-			selected,
-			moved,
+			...props
+		} = this.props;
 
-			ref: this.graphViewRef,
+		return r(React.Fragment, [
+			!hideLiveVolumePeaks && r(Peaks, {
+				key: 'peaks',
+				nodes,
+				edges,
+				accommodateGraphAnimation,
+				peaks,
+			}),
 
-			nodes,
-			edges,
+			r(GraphViewBase, {
+				key: 'graph',
 
-			onSwapEdge: this.props.onSwapEdge,
-			onNodeMove: this.onNodeMove,
+				...props,
 
-			onSelectEdge: this.onSelectEdge,
+				selected,
+				moved,
 
-			onCreateEdge: this.onCreateEdge,
+				ref: this.graphViewRef,
 
-			onEdgeMouseDown: this.onEdgeMouseDown,
+				nodes,
+				edges,
 
-			renderNode: this.renderNode,
-			renderNodeText: this.renderNodeText,
+				onSwapEdge: this.props.onSwapEdge,
+				onNodeMove: this.onNodeMove,
 
-			renderEdge: this.renderEdge,
-			renderEdgeText: this.renderEdgeText,
+				onSelectEdge: this.onSelectEdge,
 
-			afterRenderEdge: this.props.afterRenderEdge && this.afterRenderEdge,
-		});
+				onCreateEdge: this.onCreateEdge,
+
+				onEdgeMouseDown: this.onEdgeMouseDown,
+
+				renderNode: this.renderNode,
+				renderNodeText: this.renderNodeText,
+
+				renderEdge: this.renderEdge,
+				renderEdgeText: this.renderEdgeText,
+
+				afterRenderEdge: this.props.afterRenderEdge && this.afterRenderEdge,
+			}),
+		]);
 	}
 }
 
