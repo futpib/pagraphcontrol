@@ -34,6 +34,10 @@ const getIconWithFallback = async name => {
 		return getIconWithFallback(fallbacks.get(name));
 	}
 
+	if (!result) {
+		console.warn('icon missing', name);
+	}
+
 	cache.set(name, result);
 
 	return result;

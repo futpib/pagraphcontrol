@@ -4,31 +4,52 @@ const path = require('path');
 
 const ini = require('ini');
 
-const gtkIniPath = path.join(
+const gtkIniPaths = [];
+
+gtkIniPaths.push('/etc/gtk-3.0/settings.ini');
+
+if (process.env.XDG_CONFIG_DIRS) {
+	gtkIniPaths.push(...process.env.XDG_CONFIG_DIRS.split(':')
+		.map(dir => path.join(dir, 'gtk-3.0', 'settings.ini')));
+}
+
+gtkIniPaths.push(path.join(
 	process.env.HOME,
 	process.env.XDG_CONFIG_HOME || '.config',
 	'gtk-3.0',
 	'settings.ini',
-);
+));
 
-let gtk;
+const gtkInis = [];
 try {
-	gtk = ini.parse(fs.readFileSync(gtkIniPath, 'utf-8'));
+	gtkIniPaths.forEach(path => {
+		const gtk = ini.parse(fs.readFileSync(path, 'utf-8'));
+		gtkInis.push(gtk);
+	});
 } catch (error) {
-	console.warn(error);
+	if (error.code !== 'ENOENT') {
+		console.warn(error);
+	}
 }
 
 let themeName = 'Adwaita';
-let iconThemeNames = [ 'Adwaita', 'hicolor' ];
+const iconThemeNames = [ 'Adwaita', 'hicolor' ];
 
-if (gtk) {
-	iconThemeNames = [
-		gtk.Settings['gtk-icon-theme-name'],
-		gtk.Settings['gtk-fallback-icon-theme'],
-		'hicolor',
-	].filter(Boolean);
-	themeName = gtk.Settings['gtk-theme-name'] || themeName;
-}
+gtkInis.forEach(gtk => {
+	if (gtk && gtk.Settings) {
+		if (gtk.Settings['gtk-icon-theme-name']) {
+			iconThemeNames[0] = gtk.Settings['gtk-icon-theme-name'];
+		}
+
+		if (gtk.Settings['gtk-fallback-icon-theme']) {
+			iconThemeNames[1] = gtk.Settings['gtk-fallback-icon-theme'];
+		}
+
+		if (gtk.Settings['gtk-theme-name']) {
+			themeName = gtk.Settings['gtk-theme-name'];
+		}
+	}
+});
 
 const themePaths = [
 	path.join(
