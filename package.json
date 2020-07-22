@@ -2,6 +2,7 @@
   "name": "pagraphcontrol",
   "description": "PulseAudio Graph Control",
   "version": "1.0.1",
+  "private": true,
   "main": "index.js",
   "license": "GPL-3.0",
   "devDependencies": {
