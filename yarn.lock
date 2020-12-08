@@ -259,11 +259,6 @@
   resolved "https://registry.yarnpkg.com/@istanbuljs/schema/-/schema-0.1.2.tgz#26520bf09abe4a5644cd5414e37125a8954241dd"
   integrity sha512-tsAQNx32a8CoFhjhijUIhI4kccIAgmGhy8LZMZgGfmXcpMbPRUqn5LWmgRttILi6yeGmBJd2xsPkFMs0PzgPCw==
 
-"@jakejarrett/gtk-theme@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@jakejarrett/gtk-theme/-/gtk-theme-2.0.0.tgz#d2a026a25bb44ec09757d4a7949219ef7a81af50"
-  integrity sha512-TJrPChEmkARUnu6sqqsueXpB0l5YO+vp8uiL5viVrfG/W8Jw+btkGikwLcDDYW6UPRn5t3uoRBr+yJdRj1VE9g==
-
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/@mrmlnc/readdir-enhanced/-/readdir-enhanced-2.2.1.tgz#524af240d1a360527b730475ecfa1344aa540dde"

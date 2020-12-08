@@ -29,7 +29,6 @@
   "dependencies": {
     "@futpib/paclient": "^0.0.10",
     "@futpib/react-electron-menu": "^0.3.1",
-    "@jakejarrett/gtk-theme": "^2.0.0",
     "bluebird": "^3.7.2",
     "camelcase": "^6.0.0",
     "d3": "^5.16.0",
