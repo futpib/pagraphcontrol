@@ -99,5 +99,6 @@ for (const themePath of themePaths) {
 
 module.exports = {
 	iconThemeNames,
+	themeName,
 	css,
 };

@@ -10,6 +10,7 @@ app.on('ready', () => {
 		backgroundColor: theme.colors.themeBaseColor,
 		webPreferences: {
 			nodeIntegration: true,
+			enableRemoteModule: true,
 		},
 	});
 	win.setAutoHideMenuBar(true);
