@@ -6,8 +6,6 @@ const r = require('r-dom');
 
 const d3 = require('d3');
 
-const { devicePixelRatio } = window;
-
 const width = 300;
 const height = 18;
 
@@ -57,15 +55,15 @@ module.exports = class VolumeSlider extends React.Component {
 
 	handleDragStart() {
 		this._startX = d3.event.x;
-		this._offsetX = d3.event.sourceEvent.offsetX || (this._lastRenderedX / devicePixelRatio);
+		this._offsetX = d3.event.sourceEvent.offsetX || (this._lastRenderedX);
 		this.setState({
-			draggingX: clamp(this._offsetX * devicePixelRatio),
+			draggingX: clamp(this._offsetX),
 		});
 	}
 
 	handleDrag() {
 		if (this.state.draggingX !== null) {
-			const draggingX = ((d3.event.x - this._startX) + this._offsetX) * devicePixelRatio;
+			const draggingX = ((d3.event.x - this._startX) + this._offsetX);
 			this.setState({
 				draggingX: clamp(draggingX),
 			});
