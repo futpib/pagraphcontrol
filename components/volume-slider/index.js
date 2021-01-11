@@ -1,5 +1,3 @@
-/* global window */
-
 const React = require('react');
 
 const r = require('r-dom');
