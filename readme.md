@@ -31,7 +31,7 @@ yay -S pagraphcontrol-git
 ### Ubuntu (manual build) 
 
 ```bash
-sudo apt install npm
+sudo apt install npm python
 sudo npm install -g yarn
 
 git clone https://github.com/futpib/pagraphcontrol.git
