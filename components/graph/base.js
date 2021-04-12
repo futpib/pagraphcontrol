@@ -263,7 +263,7 @@ class GraphView extends GraphViewBase {
 }
 
 GraphView.defaultProps = merge(GraphViewBase.defaultProps, {
-	layoutEngineType: null,
+	layoutEngineType: 'SnapToGrid',
 });
 
 class Node extends NodeBase {
