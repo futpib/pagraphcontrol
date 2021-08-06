@@ -1,5 +1,7 @@
 /* global document */
 
+const prompt = require('electron-prompt');
+
 const {
 	all,
 	allPass,
@@ -1437,7 +1439,16 @@ class Graph extends React.PureComponent {
 	}
 
 	onLoadModuleNullSink() {
-		this.props.loadModule('module-null-sink', '');
+		prompt({
+			label: '!! NO SPACES !!',
+			title: 'Null sink name', 
+			value: 'nullsink' 
+		}).then((r) => {
+			let regex = /^\S*$/;
+			if (regex.test(r)) {
+				this.props.loadModule('module-null-sink', `sink_name="${r}" sink_properties=device.description="${r}"`);
+			}
+		});
 	}
 
 	renderBackground() {
