@@ -12,7 +12,6 @@
     "electron-packager": "^15.2.0",
     "eslint-config-xo-overrides": "^1.4.0",
     "nyc": "^15.1.0",
-    "remotedev-server": "^0.3.1",
     "uws": "^100.0.1",
     "xo": "^0.32.0"
   },
