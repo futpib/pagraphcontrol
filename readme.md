@@ -1,4 +1,9 @@
 # PulseAudio Graph Control
+
+> **This project is no longer maintained.** Consider using one of these actively developed alternatives:
+> * [Helvum](https://github.com/relulz/helvum) - GTK patchbay for PipeWire
+> * [qpwgraph](https://github.com/rncbc/qpwgraph) - Qt patchbay for PipeWire
+
 [
 ![Build Status](https://travis-ci.org/futpib/pagraphcontrol.svg?branch=master)](https://travis-ci.org/futpib/pagraphcontrol)
 
